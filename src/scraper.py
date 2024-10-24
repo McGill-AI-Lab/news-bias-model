@@ -4,13 +4,14 @@ import re
 from tqdm import tqdm
 import os
 import nltk
-nltk.download()
+import re
+# nltk.download()
 
 
 class Scraper:
     def __init__(self, url):
         self.url = url
-
+        self.dataFilePath = 'src/data/news-data.json'
         print(f"Starting to build the source from {self.url}...")
         self.source = newspaper.build(
             self.url, number_threads=18, memoize_articles=False
@@ -34,36 +35,46 @@ class Scraper:
                         "title": article.title,
                         "authors": article.authors,
                         # "summary": article.summary,
-                        "text": article.text,
+                        'text': self.clean_text(article.text),
                         "published": str(article.publish_date),
                     }
                     articleDataset.append(articleData)
                 except Exception as e:
-                    print(f"Failed to process article {article.url}: {e}")
+                    print(f"Failed to process article {article.url}:\n{e}\n")
 
                 pbar.update(1)
+                
+        self.add_articles(self.url, articleDataset)
+        
+    # decode escape sequences and remove special characters
+    def clean_text(self, text):
+        clean_text = text.encode('utf-8').decode('ascii', 'ignore')
+        clean_text = re.sub(r'\\.*?(\s|$)', ' ', clean_text)  # Removes \ followed by anything until a space or end
+        return clean_text
+    
+    def add_articles(self, sourceName, new_articles):
+        data = self.load_existing_data(self.dataFilePath)
+        
+        if sourceName not in data:
+            data[sourceName] = []
+        
+        data[sourceName].extend(new_articles)
+        
+        self.save_data(self.dataFilePath, data)
+        
+    def load_existing_data(self, filePath):
+        if os.path.exists(filePath):
+            if os.path.getsize(filePath) == 0:
+                print(f"{filePath} is empty. Initializing new data structure.")
+                return {}
+            
+            with open(filePath, 'r') as file:
+                return json.load(file)
+        return {}
 
-        # Ensure the 'data' directory exists
-        os.makedirs("data", exist_ok=True)
-
-        # Check if the file exists
-        file_path = "data/news-data.json"
-        if os.path.exists(file_path):
-            # Load existing data
-            with open(file_path, "r", encoding="utf-8") as f:
-                try:
-                    existing_data = json.load(f)
-                except json.JSONDecodeError:
-                    existing_data = []
-            # Append new data
-            existing_data.extend(articleDataset)
-            # Write back to the file
-            with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(existing_data, f, indent=4)
-        else:
-            # Write new data
-            with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(articleDataset, f, indent=4)
+    def save_data(self, filePath, data):
+        with open(filePath, 'w') as file:
+            json.dump(data, file, indent=4)
 
 
 # newssource = 'https://cnbc.com/'
@@ -127,11 +138,11 @@ list_of_newspapers = [
     "https://theistanbulchronicle.com",
 ]
 
-
-for newspaper_url in list_of_newspapers:
-    print(f"Starting to scrape articles from: {newspaper_url}")
-    scraper = Scraper(newspaper_url)
-    scraper.scrape()
-    print(
-        f"Finished scraping {newspaper_url}!, result: {scraper.source.size()} articles"
-    )
+if __name__ == "__main__":
+    for newspaper_url in list_of_newspapers:
+        print(f"Starting to scrape articles from: {newspaper_url}")
+        scraper = Scraper(newspaper_url)
+        scraper.scrape()
+        print(
+            f"Finished scraping {newspaper_url}!, result: {scraper.source.size()} articles"
+        )
