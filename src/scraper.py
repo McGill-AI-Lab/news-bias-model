@@ -1,10 +1,10 @@
 import newspaper
 import json
-import re
 from tqdm import tqdm
 import os
 import nltk
 import re
+from unidecode import unidecode
 # nltk.download()
 
 
@@ -12,7 +12,7 @@ class Scraper:
     def __init__(self, url):
         self.url = url
         self.dataFilePath = 'src/data/news-data.json'
-        print(f"Starting to build the source from {self.url}...")
+        print(f"Starting to build the source...")
         self.source = newspaper.build(
             self.url, number_threads=18, memoize_articles=False
         )  # Can adjust threads as needed
@@ -32,7 +32,7 @@ class Scraper:
                     article.nlp()
                     articleData = {
                         "url": article.url,
-                        "title": article.title,
+                        "title": self.clean_text(article.title),
                         "authors": article.authors,
                         # "summary": article.summary,
                         'text': self.clean_text(article.text),
@@ -44,12 +44,14 @@ class Scraper:
 
                 pbar.update(1)
                 
+                
         self.add_articles(self.url, articleDataset)
         
     # decode escape sequences and remove special characters
     def clean_text(self, text):
-        clean_text = text.encode('utf-8').decode('ascii', 'ignore')
-        clean_text = re.sub(r'\\.*?(\s|$)', ' ', clean_text)  # Removes \ followed by anything until a space or end
+        clean_text = text.encode("ascii", "ignore").decode()
+        clean_text = clean_text.replace("\n", "").replace("\u2019", "'")
+        clean_text = unidecode(clean_text)
         return clean_text
     
     def add_articles(self, sourceName, new_articles):
