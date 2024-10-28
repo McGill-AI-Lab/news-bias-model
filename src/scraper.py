@@ -3,7 +3,6 @@ import json
 from tqdm import tqdm
 import os
 import nltk
-import re
 from unidecode import unidecode
 from multiprocessing.pool import ThreadPool
 # nltk.download()
@@ -23,13 +22,13 @@ class Scraper:
         print(f"Got {len(articleLinks)} articles!")
 
         articleDataset = []
-        failedLinks = []
-        workers = 16
+        errorMessages = []
+        workers = 64
         pool = ThreadPool(workers)
         with tqdm(total=len(articleLinks), desc=f"Extracting Article Data ({self.url})") as pbar:
             for article in articleLinks:
                 pool.apply_async(
-                    self.process_article, args=(article, ), callback=lambda result: self.log_article(pbar, articleDataset, failedLinks, result)
+                    self.process_article, args=(article, ), callback=lambda result: self.log_article(pbar, articleDataset, errorMessages, result)
                     )
             pool.close()
             pool.join()
@@ -39,12 +38,16 @@ class Scraper:
                 
         self.add_articles(self.url, articleDataset)
         
-    def log_article(self, pbar, articleDataset, failedLinks, result):
+        with open("src/error_messages.txt", "a") as f:
+            for errorMessage in errorMessages:
+                f.write(f"{errorMessage}\n")
+        
+    def log_article(self, pbar, articleDataset, errorMessages, result):
         if result[0]:
             articleDataset.append(result[1])
             pbar.update(1)
         else:
-            failedLinks.append(result[1])
+            errorMessages.append(result[2])
         
     def process_article(self, article):
         try:
@@ -60,8 +63,8 @@ class Scraper:
                 "published": str(article.publish_date),
             }
         except Exception as e:
-            return (False, article.url)
-        return (True, articleData)
+            return (False, article.url, e)
+        return (True, articleData, None)
         
     # decode escape sequences and remove special characters
     def clean_text(self, text):
@@ -156,6 +159,8 @@ list_of_newspapers = [
 ]
 
 if __name__ == "__main__":
+    file = open("src/error_messages.txt", "w")
+    file.close() # Reset the error logging file at start
     for newspaper_url in list_of_newspapers:
         print(f"Starting to scrape articles from: {newspaper_url}")
         scraper = Scraper(newspaper_url)
