@@ -7,7 +7,6 @@ import re
 from unidecode import unidecode
 # nltk.download()
 
-
 class Scraper:
     def __init__(self, url):
         self.url = url
@@ -18,10 +17,11 @@ class Scraper:
         )  # Can adjust threads as needed
 
     def scrape(self):
-        articleLinks = self.source.articles
+        articleLinks = self.source.articles #[0:15]
         print(f"Got {len(articleLinks)} articles!")
 
         articleDataset = []
+        failedLinks = []
         with tqdm(total=len(articleLinks), desc="Extracting Article Data") as pbar:
             for article in [
                 article for article in articleLinks if "video" not in article.url
@@ -40,10 +40,13 @@ class Scraper:
                     }
                     articleDataset.append(articleData)
                 except Exception as e:
-                    print(f"Failed to process article {article.url}:\n{e}\n")
+                    failedLinks.append(article.url)
+                    # print(f"Failed to process article {article.url}:\n{e}\n")
 
                 pbar.update(1)
-                
+        print(
+            f"Finished scraping {self.url}\nResult: {len(articleDataset)}/{len(articleLinks)} successfully scraped.\n"
+        )
                 
         self.add_articles(self.url, articleDataset)
         
@@ -77,7 +80,6 @@ class Scraper:
     def save_data(self, filePath, data):
         with open(filePath, 'w') as file:
             json.dump(data, file, indent=4)
-
 
 # newssource = 'https://cnbc.com/'
 # articleLinkInput = str(input('What link would you like to scrape articles from?\n(Leave empty to use the link in the code)\n'))
@@ -145,6 +147,4 @@ if __name__ == "__main__":
         print(f"Starting to scrape articles from: {newspaper_url}")
         scraper = Scraper(newspaper_url)
         scraper.scrape()
-        print(
-            f"Finished scraping {newspaper_url}!, result: {scraper.source.size()} articles"
-        )
+
