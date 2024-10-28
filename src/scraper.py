@@ -5,6 +5,7 @@ import os
 import nltk
 import re
 from unidecode import unidecode
+from multiprocessing.pool import ThreadPool
 # nltk.download()
 
 class Scraper:
@@ -18,37 +19,49 @@ class Scraper:
 
     def scrape(self):
         articleLinks = self.source.articles #[0:15]
+        articleLinks = [article for article in articleLinks if "video" not in article.url]
         print(f"Got {len(articleLinks)} articles!")
 
         articleDataset = []
         failedLinks = []
-        with tqdm(total=len(articleLinks), desc="Extracting Article Data") as pbar:
-            for article in [
-                article for article in articleLinks if "video" not in article.url
-            ]:  # don't want videos
-                try:
-                    article.download()
-                    article.parse()
-                    article.nlp()
-                    articleData = {
-                        "url": article.url,
-                        "title": self.clean_text(article.title),
-                        "authors": article.authors,
-                        # "summary": article.summary,
-                        'text': self.clean_text(article.text),
-                        "published": str(article.publish_date),
-                    }
-                    articleDataset.append(articleData)
-                except Exception as e:
-                    failedLinks.append(article.url)
-                    # print(f"Failed to process article {article.url}:\n{e}\n")
-
-                pbar.update(1)
+        workers = 16
+        pool = ThreadPool(workers)
+        with tqdm(total=len(articleLinks), desc=f"Extracting Article Data ({self.url})") as pbar:
+            for article in articleLinks:
+                pool.apply_async(
+                    self.process_article, args=(article, ), callback=lambda result: self.log_article(pbar, articleDataset, failedLinks, result)
+                    )
+            pool.close()
+            pool.join()
         print(
             f"Finished scraping {self.url}\nResult: {len(articleDataset)}/{len(articleLinks)} successfully scraped.\n"
         )
                 
         self.add_articles(self.url, articleDataset)
+        
+    def log_article(self, pbar, articleDataset, failedLinks, result):
+        if result[0]:
+            articleDataset.append(result[1])
+            pbar.update(1)
+        else:
+            failedLinks.append(result[1])
+        
+    def process_article(self, article):
+        try:
+            article.download()
+            article.parse()
+            article.nlp()
+            articleData = {
+                "url": article.url,
+                "title": self.clean_text(article.title),
+                "authors": article.authors,
+                # "summary": article.summary,
+                'text': self.clean_text(article.text),
+                "published": str(article.publish_date),
+            }
+        except Exception as e:
+            return (False, article.url)
+        return (True, articleData)
         
     # decode escape sequences and remove special characters
     def clean_text(self, text):
