@@ -5,6 +5,8 @@ import os
 import nltk
 from unidecode import unidecode
 from multiprocessing.pool import ThreadPool
+from newspaper import ContentExtractor
+# def get_urls line 600
 # nltk.download()
 
 class Scraper:
@@ -20,6 +22,7 @@ class Scraper:
         articleLinks = self.source.articles #[0:15]
         articleLinks = [article for article in articleLinks if "video" not in article.url]
         print(f"Got {len(articleLinks)} articles!")
+        print(articleLinks[15].url)
 
         articleDataset = []
         errorMessages = []
@@ -158,11 +161,19 @@ list_of_newspapers = [
     "https://theistanbulchronicle.com",
 ]
 
+extentions_list =[
+    "",
+    "/politics/",
+    "/world/",
+    "/war/",
+]
 if __name__ == "__main__":
     file = open("src/error_messages.txt", "w")
     file.close() # Reset the error logging file at start
     for newspaper_url in list_of_newspapers:
-        print(f"Starting to scrape articles from: {newspaper_url}")
-        scraper = Scraper(newspaper_url)
-        scraper.scrape()
+        for extention in extentions_list:
+            url = newspaper_url + extention
+            print(f"Starting to scrape articles from: {url}")
+            scraper = Scraper(url)
+            scraper.scrape()
 
