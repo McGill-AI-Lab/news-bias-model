@@ -8,7 +8,7 @@ import json
 #! THIS CODE ONLY GETS URLS
 
 # Set up the Selenium WebDriver (you need to have ChromeDriver installed for Chrome)
-driver = webdriver.Chrome()  # or webdriver.Firefox() for Firefox
+driver = webdriver.Chrome()
 keywords = [
     # Geopolitical Context
     "Israel", 
