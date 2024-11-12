@@ -11,8 +11,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import BeautifulSoup
 import time as t
-import os
-
 
 # Constants
 NEWS_SITE = "www.washingtonpost.com"
@@ -75,7 +73,7 @@ for keyword in keywords:
 
     # Scrape all articles
     soup = BeautifulSoup(driver.page_source, 'html.parser') # Beautify the HTML
-    link_container = soup.find_all("section")[1] # Select 2nd section in HTML page (link container)
+    link_container = soup.find_all("section")[1] # Select 2nd section in HTML page
 
     if link_container:
         results = link_container.find_all('a', href=True)
@@ -94,8 +92,8 @@ for keyword in keywords:
 url_list = list(set(url_set))
 print(f"Number of articles: {len(url_list)}")
 # Name file with timestamp for differentiation
-path = t.strftime(f'~/Desktop/{NEWS_SITE}_%y-%m-%d-%Hh%Mmin%Ss_urls.txt', t.localtime())
-with open(os.path.expanduser(path), 'a') as file: # expands '~' to home directory
+path = t.strftime(f'news-bias-model/src/data/{NEWS_SITE}_%y-%m-%d-%Hh%Mmin%Ss_urls.txt', t.localtime())
+with open(path, 'a') as file:
     urls_chained = '"' + '", "'.join(url_list) + '"'
     file.write(f'"{NEWS_SITE}":[{urls_chained}]')
 
