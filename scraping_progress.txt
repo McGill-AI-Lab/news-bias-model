@@ -1,0 +1,37 @@
+Jacob L.:
+scraped:
+- CNN
+- New York Post
+- 
+going to scrape:
+- 
+-------------------------
+Oscar:
+scraped:
+-
+-
+going to scrape:
+- New York Times
+- CNN
+- Guardian
+- BBC
+- Al Jazeera
+- CBC
+- Jerusalem Times
+- MSNBC
+- CNBC
+- Sky News
+-------------------------
+Jacob S.:
+scraped:
+- Washington Post
+-
+going to scrape:
+- SF Chronicle
+- Times
+- LA Times
+- USA Today
+- Fox News
+- AP News
+- Reuters
+- Independent
