@@ -1,6 +1,8 @@
 # 2024-11-12
 # Jacob Sauvé
-# Washington Post Scraper, ! THIS CODE ONLY GETS URLS
+# Washington Post Scraper
+
+# ! THIS CODE ONLY GETS URLS !
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -17,7 +19,7 @@ NEWS_SITE = "www.washingtonpost.com"
 NEXT_BUTTON_TXT = "//*[contains(text(), 'Load more results')]"
 COOKIES_POP_OVER_TXT = "//*[contains(text(), 'Reject All')]"
 ARTICLES_PER_KEYWORD = 10000 # Must be an integer, ideally 10n
-CLICK_DELAY = 0.5 # In seconds
+CLICK_DELAY = 0.5 # In seconds, time between auto clicks to allow page to load
 
 keywords = [
     "Israel", 
@@ -38,14 +40,14 @@ for keyword in keywords:
         "general.useragent.override",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, \
     like Gecko) Firefox/91.0 Safari/537.36"
-        )
+        ) # Custom user agent to appear less like a bot
     driver = webdriver.Firefox(options=options)
     url = f"https://www.washingtonpost.com/search/?query={keyword}"   
     driver.get(url)
     
     print(f"\nBeginning scraping of {NEWS_SITE} for keyword '{keyword}'!")
     
-    # Check for pop-over cookies acceptance pop-up
+    # Check for cookie acceptance pop-up and click "Reject All"
     try:
         cookies_button = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, COOKIES_POP_OVER_TXT))
@@ -55,27 +57,29 @@ for keyword in keywords:
         pass
     
     # While the 'Load More' button exists, click on it, THEN scrape all URLs
-    # Actually - only scraping ARTICLES_PER_KEYWORD articles
+    # Actually - only scraping a maximum of ARTICLES_PER_KEYWORD articles
     for load_more in range((ARTICLES_PER_KEYWORD)//10-1):
         t.sleep(CLICK_DELAY)
         # Check if more results exist
         try:
             next_button = WebDriverWait(driver, 10).until(
-                # check for Next button
+                # Check for Next button
                     EC.presence_of_element_located((By.XPATH, NEXT_BUTTON_TXT))
                 )
             next_button.click()
             print(f"{(1+load_more)*10} articles loaded...")
         except:
+            # Occurs if the button did not load, i.e. no more search results 
             print("Error: Timeout or no button found. Exiting loop...")
             break 
 
-
-    # Scrape all articles
+    
     soup = BeautifulSoup(driver.page_source, 'html.parser') # Beautify the HTML
-    link_container = soup.find_all("section")[1] # Select 2nd section in HTML page
+    # Select 2nd section in HTML page (the link container)
+    link_container = soup.find_all("section")[1]
 
     if link_container:
+        # Scrape all articles
         results = link_container.find_all('a', href=True)
         links = [
             link.get('href') for link in results if link.get('href')
@@ -89,10 +93,14 @@ for keyword in keywords:
     driver.quit()
 
 
-url_list = list(set(url_set))
+url_list = list(set(url_set)) # Remove link duplicates
 print(f"Number of articles: {len(url_list)}")
 # Name file with timestamp for differentiation
-path = t.strftime(f'news-bias-model/src/data/{NEWS_SITE}_%y-%m-%d-%Hh%Mmin%Ss_urls.txt', t.localtime())
+path = t.strftime(
+    f'news-bias-model/src/data/{NEWS_SITE}_%y-%m-%d-%Hh%Mmin%Ss_urls.txt',
+    t.localtime()
+)
+# Save URLs to a .txt file, to be converted to json later
 with open(path, 'a') as file:
     urls_chained = '"' + '", "'.join(url_list) + '"'
     file.write(f'"{NEWS_SITE}":[{urls_chained}]')
