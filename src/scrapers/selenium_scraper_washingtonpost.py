@@ -1,6 +1,6 @@
 # 2024-11-12
 # Jacob Sauvé
-# Washington Post Scraper
+# Washington Post Scraper, ! THIS CODE ONLY GETS URLS
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
