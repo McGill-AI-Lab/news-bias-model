@@ -8,12 +8,11 @@ going to scrape:
 -------------------------
 Oscar:
 scraped:
--
--
+- Guardian
+- Al Jazeera (scraping rn)
 going to scrape:
 - New York Times
 - CNN
-- Guardian
 - BBC
 - Al Jazeera
 - CBC
@@ -25,7 +24,7 @@ going to scrape:
 Jacob S.:
 scraped:
 - Washington Post
--
+- Reuters
 going to scrape:
 - SF Chronicle
 - Times
@@ -33,5 +32,4 @@ going to scrape:
 - USA Today
 - Fox News
 - AP News
-- Reuters
 - Independent
