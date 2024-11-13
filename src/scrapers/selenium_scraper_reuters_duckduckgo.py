@@ -3,6 +3,8 @@
 # Scraper using DuckDuckGo which should work for any news site
 # Modified here to scrape Reuters
 
+# ! THIS CODE ONLY GETS URLS !
+
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
@@ -11,7 +13,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import BeautifulSoup
 import time as t
-import os
 
 
 # Constants
@@ -31,8 +32,6 @@ keywords = [
     "Hamas", 
     "Palestine", 
 ]
-# keyword_string = "+".join(keywords)
-
 
 news_site = "www.reuters.com" # Only Reuters
 url_set = list() # Initialise list of scraped URLs
@@ -59,10 +58,10 @@ for keyword in keywords:
     # While the 'Load More' button exists, click on it, THEN scrape all URLs 
     while True:
         t.sleep(0.01)
-        # check if more results exist
+        # Check if more results exist that have not yet been loaded
         try:
             next_button = WebDriverWait(driver, 10).until(
-                # check for Next button
+                # check for 'Load More' button
                     EC.presence_of_element_located((By.ID, NEXT_BUTTON_ID))
                 )
             next_button.click()
@@ -76,6 +75,7 @@ for keyword in keywords:
     link_container = soup.find("ol", class_ = LINK_CONTAINER_CLASS)
 
     if link_container:
+        # Scrape all article URLs
         results = link_container.find_all('a', href=True)
         links = [
             link.get('href') for link in results if "http" in link.get('href')
@@ -91,7 +91,11 @@ for keyword in keywords:
 url_list = list(set(url_set))
 print(f"Number of articles: {len(url_list)}")
 # Name file with timestamp for differentiation
-path = t.strftime(f'~/Desktop/{news_site}_%y-%m-%d-%Hh%Mmin%Ss_urls.txt', t.localtime())
-with open(os.path.expanduser(path), 'w') as file: # expands '~' to home directory
+path = t.strftime(
+    f'news-bias-model/src/data/{news_site}_%y-%m-%d-%Hh%Mmin%Ss_urls.txt',
+    t.localtime()
+)
+# Save URLs to a .txt file, to be converted to json later
+with open(path, 'a') as file:
     urls_chained = '"' + '", "'.join(url_list) + '"'
     file.write(f'"{news_site}":[{urls_chained}]')
