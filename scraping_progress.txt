@@ -15,7 +15,6 @@ going to scrape:
 - New York Times
 - CNN
 - BBC
-- Al Jazeera
 - Jerusalem Times
 - MSNBC
 - CNBC
