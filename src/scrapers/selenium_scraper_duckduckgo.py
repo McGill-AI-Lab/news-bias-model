@@ -14,7 +14,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import BeautifulSoup
 import time as t
-import os
 
 
 # Constants
@@ -101,7 +100,11 @@ for news_site in news_sites:
     url_list = list(set(url_set))
     print(f"Number of articles: {len(url_list)}")
     # Name file with timestamp for differentiation
-    path = t.strftime(f'~/Desktop/{news_site}_%y-%m-%d-%Hh%Mmin%Ss_urls.txt', t.localtime())
-    with open(os.path.expanduser(path), 'a') as file: # expands '~' to home directory
+    path = t.strftime(
+        f'news-bias-model/src/data/{NEWS_SITE}_%y-%m-%d-%Hh%Mmin%Ss_urls.txt',
+        t.localtime()
+    )
+    Save URLs to a .txt file, to be converted to json later
+    with open(path, 'a') as file:
         urls_chained = '"' + '", "'.join(url_list) + '"'
         file.write(f'"{news_site}":[{urls_chained}]')
