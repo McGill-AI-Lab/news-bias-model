@@ -9,13 +9,13 @@ going to scrape:
 Oscar:
 scraped:
 - Guardian
-- Al Jazeera (scraping rn)
+- Al Jazeera 
+- CBC
 going to scrape:
 - New York Times
 - CNN
 - BBC
 - Al Jazeera
-- CBC
 - Jerusalem Times
 - MSNBC
 - CNBC
