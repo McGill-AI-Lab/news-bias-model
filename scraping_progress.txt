@@ -25,7 +25,6 @@ Jacob S.:
 scraped:
 - Washington Post
 - Reuters
-going to scrape:
 - SF Chronicle
 - Times
 - LA Times
@@ -33,3 +32,5 @@ going to scrape:
 - Fox News
 - AP News
 - Independent
+going to scrape:
+- 
