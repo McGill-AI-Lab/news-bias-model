@@ -11,14 +11,14 @@ scraped:
 - Guardian
 - Al Jazeera 
 - CBC
-going to scrape:
 - New York Times
 - CNN
+- Sky News
+going to scrape:
 - BBC
 - Jerusalem Times
 - MSNBC
 - CNBC
-- Sky News
 -------------------------
 Jacob S.:
 scraped:
