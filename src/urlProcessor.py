@@ -1,4 +1,4 @@
-from newspaper import Article
+import newspaper
 import json
 from tqdm import tqdm
 from multiprocessing import Pool
@@ -12,9 +12,8 @@ def getData(path):
     return url_dict
     
 def processArticle(url):
-    paper = Article(url) # Makes a new Article instance
-    paper.download() # Gets the HTML content
-    paper.parse() # Parses HTML so we can now extract the title, authors, etc.
+    paper = newspaper.article(url) # Makes a new Article instance
+
     title = paper.title 
     authors = paper.authors
     date = paper.publish_date
