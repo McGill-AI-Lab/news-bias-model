@@ -37,7 +37,7 @@ def cleanText(text):
 
 def extractData(url_list):
     data = []
-    pool = Pool(processes=256)  # 256 may be too high, not sure
+    pool = Pool(processes=32)  # may be too high, not sure
 
     # tqdm gives us a progress bar, args are self-explanitory
     with tqdm(total=len(url_list), desc=f"Extracting Article Data") as pbar:
@@ -74,7 +74,7 @@ def writeData(data, path="src/data/news-data-extracted.json"):
         json.dump(data, f, indent=4)
         
 if __name__ == "__main__":
-    url_json = getData("src/data/news-data.json")
+    url_json = getData("src/data/article_urls.json")
     data = main(url_json)
     # print(data)
     writeData(data, "src/data/news-data-extracted.json")
