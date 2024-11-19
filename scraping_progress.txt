@@ -32,4 +32,13 @@ scraped:
 - AP News
 - Independent
 going to scrape:
-- 
+-
+-------------------------
+Dory S.:
+scraped:
+- Chicago Tribune
+going to scrape:
+- Wall street journal
+- Dw
+- Trt english
+- Spectator
