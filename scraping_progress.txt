@@ -14,8 +14,8 @@ scraped:
 - New York Times
 - CNN
 - Sky News
-going to scrape:
 - BBC
+going to scrape:
 - Jerusalem Times
 - MSNBC
 - CNBC
