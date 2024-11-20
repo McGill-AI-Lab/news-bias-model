@@ -3,7 +3,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import json
+from datetime import datetime
+
 
 keywords = [
     # Geopolitical Context
@@ -51,44 +52,59 @@ keywords = [
 
 driver = webdriver.Chrome()
 url_set = []
-
+cut_off_date = datetime(2023,10, 7)
 for query in keywords:
     print(f"Starting to search for {query}")
     condition = True
-    i = 1 #page number
+    i = 1
     while condition:
 
-        url = f'https://www.chicagotribune.com/page/{i}/?s={query}&post_type&category_name&orderby=date&order=desc&sp%5Bf%5D=2023-10-07&sp%5Bt%5D=2024-11-18&obit__spotlight&obit__site_name'
+        url = f'https://www.spectator.co.uk/?s={query}&page={i}'
         driver.get(url)
 
         try:
             # Wait for the elements to be visible
-            WebDriverWait(driver, 15).until(
+            WebDriverWait(driver, 60).until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "article"))
             )
         except:
             print("Timeout or no content available. Exiting loop.")
             condition = False
             break
-
         #Parsing with bs4
         soup = BeautifulSoup(driver.page_source, 'lxml')
 
         #Identifying newspapers to scrape
         news_blocks = soup.find_all('article')
         for block in news_blocks:
-            link_tag = block.find('figure').a
-            link = link_tag.get('href')
-            url_set.append(link)
+
+            #retrieving the date of posting
+            #Some recent papers instead mark "X hours ago"
+
+            date_element = block.find('header', attrs = {"class":'search-card__header'}).span
+            if date_element is not None:
+                date_element = date_element.text
+                try:
+                    post_date = datetime.strptime(date_element, "%d %B %Y")
+
+                except ValueError: #this is for newspapers that have "X hours ago"
+                    post_date = datetime.now()
+
+                if post_date < cut_off_date:  #stop scraping once no longer in time frame of interest
+                    condition = False
+                    break
+
+                else:
+                    link_tag = block.find('a', {'class': 'search-card__title-link'})
+                    link = link_tag.get('href')
+                    if 'article' in link: #avoids podcasts
+                        print('Just got ' + link)
+                        url_set.append(link)
+            else:
+                pass #skip newspapers that do not have a posted date
 
         i+=1
 
 driver.quit()
 
-no_duplicate_url_list = list(set(url_set))
-
-data = {
-    "https://www.chicagotribune.com/": no_duplicate_url_list
-}
-with open('data/news-data.json', 'a') as f:
-    json.dump(data, f, indent=4)
+no_duplicate_url_set = list(set(url_set))
