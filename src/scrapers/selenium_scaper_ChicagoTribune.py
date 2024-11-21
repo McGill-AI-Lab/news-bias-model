@@ -90,5 +90,5 @@ no_duplicate_url_list = list(set(url_set))
 data = {
     "https://www.chicagotribune.com/": no_duplicate_url_list
 }
-with open('data/news-data.json', 'a') as f:
+with open(r'data/article_urls.json', 'w') as f:
     json.dump(data, f, indent=4)

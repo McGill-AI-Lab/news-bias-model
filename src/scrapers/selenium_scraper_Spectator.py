@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
+import json
 
 
 keywords = [
@@ -53,6 +54,8 @@ keywords = [
 driver = webdriver.Chrome()
 url_set = []
 cut_off_date = datetime(2023,10, 7)
+article_counter = 0 
+
 for query in keywords:
     print(f"Starting to search for {query}")
     condition = True
@@ -64,7 +67,7 @@ for query in keywords:
 
         try:
             # Wait for the elements to be visible
-            WebDriverWait(driver, 60).until(
+            WebDriverWait(driver, 10).until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "article"))
             )
         except:
@@ -98,13 +101,20 @@ for query in keywords:
                     link_tag = block.find('a', {'class': 'search-card__title-link'})
                     link = link_tag.get('href')
                     if 'article' in link: #avoids podcasts
-                        print('Just got ' + link)
                         url_set.append(link)
+                        article_counter += 1
             else:
                 pass #skip newspapers that do not have a posted date
 
         i+=1
 
 driver.quit()
+print('Scraped a total of: ', article_counter, 'articles!')
 
 no_duplicate_url_set = list(set(url_set))
+
+data = {
+    "https://www.chicagotribune.com/": no_duplicate_url_set
+}
+with open(r'data/article_urls.json', 'w') as f:
+    json.dump(data, f, indent=4)
