@@ -41,19 +41,20 @@ def cleanText(text):
     return clean_text
 
 def extractData(url_list):
-    data = []
+    newspaper_source_data = []
     # pool = Pool(processes=10)
     batches = batchUrls(url_list, 1000)
+    error_list = []
 
     for batch_num, batch in enumerate(batches):
-        # time.sleep(10)
+        time.sleep(5)
         with tqdm(total=len(batch), desc=f"Extracting Article Data (batch {batch_num + 1})") as pbar:
-            with Pool(processes=32) as pool:
+            with Pool(processes=16) as pool:
                 for url in batch:
                     pool.apply_async(
                         processArticle,  # process article asynchronously
                         args=(url,),  # args expects a tuple, so we give it a tuple with one item
-                        callback=lambda single_newspaper_data: appendData(data, single_newspaper_data, pbar) # appends the result after processArticle has run, passes data by reference, so we can update it                    )
+                        callback=lambda single_newspaper_data: appendData(newspaper_source_data, single_newspaper_data, pbar, error_list, url) # appends the result after processArticle has run, passes data by reference, so we can update it                    )
                     )
 
                 # print("DONE, CLOSING")
@@ -61,8 +62,7 @@ def extractData(url_list):
                 pool.join()
 
     # Wait for all processes to finish
-
-    return data
+    return newspaper_source_data, error_list
 
 def batchUrls(urls, batch_size):
     batches = []
@@ -77,21 +77,27 @@ def batchUrls(urls, batch_size):
 
     return batches
 
-def appendData(data, single_newspaper_data, pbar):
-    data.append(single_newspaper_data)
+def appendData(data, single_newspaper_data, pbar, error_list, url):
     pbar.update(1)
+    if single_newspaper_data is not None:
+        data.append(single_newspaper_data)
+    else:
+        error_list.append(url)
 
 def main(url_dict):
     data = {}
     keys = url_dict.keys()
-
+    error_data = {}
     for key in keys:
         print(f"Now extracting the {key} urls...")
         url_list = url_dict.get(key, [])
-        extracted_data = extractData(url_list) # starts async pool with all urls passed
+        extracted_data, error_list = extractData(url_list) # starts async pool with all urls passed
         data[key] = extracted_data # saved extracted data as value for the key which is the same as the key the urls were from
+        error_data[key] = error_list
+        # actualArticles = [article for article in extracted_data if article is not None]
+        print(f"Out of {len(url_list)} urls, {len(extracted_data)} articles were extracted. ({round((len(extracted_data)/len(url_list)) * 100), 3}%)")
 
-    return data
+    return data, error_data
 
 def writeData(data, path="src/data/news-data-extracted.json"):
     with open(path, 'w') as f: # 'w' means 'open for writing, trucates the file first'
@@ -99,6 +105,8 @@ def writeData(data, path="src/data/news-data-extracted.json"):
 
 if __name__ == "__main__":
     url_json = getData("src/data/article_urls.json")
-    data = main(url_json)
+    data, error_data = main(url_json)
+    print(f"{len(data)} articles extracted in total.")
     writeData(data, "src/data/news-data-extracted.json")
+    writeData(error_data, "src/data/error_urls.json")
     print("Completed!")
