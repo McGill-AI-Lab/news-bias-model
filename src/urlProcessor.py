@@ -104,9 +104,15 @@ def writeData(data, path="src/data/news-data-extracted.json"):
         json.dump(data, f, indent=4)
 
 if __name__ == "__main__":
+<<<<<<< Updated upstream
     url_json = getData("src/data/article_urls.json")
     data, error_data = main(url_json)
     print(f"{len(data)} articles extracted in total.")
+=======
+    url_json = getData(r"src/data/article_urls.json")
+    data = main(url_json)
+    # print(data)
+>>>>>>> Stashed changes
     writeData(data, "src/data/news-data-extracted.json")
     writeData(error_data, "src/data/error_urls.json")
     print("Completed!")
