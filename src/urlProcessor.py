@@ -1,4 +1,4 @@
-import newspaper
+from newspaper import Article # Newspaper3K, NOT 4k
 import json
 from tqdm import tqdm
 from multiprocessing import Pool
@@ -13,7 +13,9 @@ def getData(path):
 
 def processArticle(url):
     try:
-        paper = newspaper.article(url) # Makes a new Article instance
+        paper = Article(url) # Makes a new Article instance
+        paper.download() # Gets the HTML content
+        paper.parse() # Makes a new Article instance
     except Exception as e:
         # print(f"Error processing {url}: {e}")
         return None  # Return None if an error occurs
@@ -49,7 +51,7 @@ def extractData(url_list):
     for batch_num, batch in enumerate(batches):
         time.sleep(5)
         with tqdm(total=len(batch), desc=f"Extracting Article Data (batch {batch_num + 1})") as pbar:
-            with Pool(processes=16) as pool:
+            with Pool(processes=4) as pool:
                 for url in batch:
                     pool.apply_async(
                         processArticle,  # process article asynchronously
@@ -95,7 +97,7 @@ def main(url_dict):
         data[key] = extracted_data # saved extracted data as value for the key which is the same as the key the urls were from
         error_data[key] = error_list
         # actualArticles = [article for article in extracted_data if article is not None]
-        print(f"Out of {len(url_list)} urls, {len(extracted_data)} articles were extracted. ({round((len(extracted_data)/len(url_list)) * 100), 3}%)")
+        print(f"Out of {len(url_list)} urls, {len(extracted_data)} articles were extracted. ({round((len(extracted_data)/len(url_list)) * 100, 3)}%)")
 
     return data, error_data
 
@@ -104,15 +106,12 @@ def writeData(data, path="src/data/news-data-extracted.json"):
         json.dump(data, f, indent=4)
 
 if __name__ == "__main__":
-<<<<<<< Updated upstream
     url_json = getData("src/data/article_urls.json")
     data, error_data = main(url_json)
     print(f"{len(data)} articles extracted in total.")
-=======
     url_json = getData(r"src/data/article_urls.json")
     data = main(url_json)
     # print(data)
->>>>>>> Stashed changes
-    writeData(data, "src/data/news-data-extracted.json")
+    writeData(data, "src/data/news-data-extracted-NEW.json")
     writeData(error_data, "src/data/error_urls.json")
     print("Completed!")
