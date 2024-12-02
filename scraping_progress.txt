@@ -15,9 +15,9 @@ scraped:
 - CNN
 - Sky News
 - BBC
+- MSNBC
 going to scrape:
 - Jerusalem Times
-- MSNBC
 - CNBC
 -------------------------
 Jacob S.:
