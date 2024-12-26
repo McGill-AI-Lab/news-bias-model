@@ -106,7 +106,7 @@ def writeData(data, path="src/data/news-data-extracted.json"):
         json.dump(data, f, indent=4)
 
 if __name__ == "__main__":
-    url_json = getData("D:/Code/news-bias-model/src/trial_fullscrape.json")
+    url_json = getData("src/trial_fullscrape.json")
     data, error_data = main(url_json)
     print(f"{len(data)} articles extracted in total.")
     writeData(data, "src/data/fullscrape_extracted.json")
