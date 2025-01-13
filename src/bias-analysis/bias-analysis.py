@@ -3,6 +3,7 @@ import os
 from preprocess import Preprocessor
 from gensim.models import Word2Vec
 from tqdm import tqdm
+import pathlib
 
 
 # ### Preprocess every article in the newspaper to create a corpus
@@ -54,14 +55,6 @@ def preprocess_newspaper(article_list):
 
     return preprocessed_article_list
 
-
-# Lets try with CNN
-article_list = create_article_list("data/news-data-extracted.json", "cnn.com")
-print(article_list)
-preprocessed = preprocess_newspaper(article_list)
-print(preprocessed)
-
-
 # Create helper functions to analyze our newspaper and corpus. These functions will help us see: 
 # - how many articles are there in the newspaper about our selected topic (Israel-Palestine) since we only scraped relevant articles
 # - corpus size (word count) before and after preprocessing, which will result in some reductions
@@ -72,7 +65,6 @@ print(preprocessed)
 
 def no_of_articles(article_list):
     return len(article_list)
-
 
 def corpus_size_before(article_list):
     corpus = article_list
@@ -215,7 +207,7 @@ def calculate_portrayal(model, palestinian_words, israeli_words, positive_portra
 
 def save_newspaper_dict(newspaper_dict):
     # File path for the JSON file
-    file_path = "preprocessed_newspapers_dict.json"
+    file_path = "src/data/preprocessed_newspapers_dict.json"
 
     # Open the JSON file
     with open(file_path, "r") as json_file:
@@ -253,7 +245,7 @@ def load_preprocessed_newspapers(json_file):
 
 newspaper_list = ["cnn.com", "WashingtonPost.com"]
 
-def master(extracted_file, newspaper_list):
+def master(newspaper_data_path, newspaper_list):
     """
     Get a list of newspapers
     Create a dictionary of newspapers, which is a dictionary
@@ -277,7 +269,7 @@ def master(extracted_file, newspaper_list):
             preprocessed_newspapers[newspaper] = {}
             dict_newspaper = preprocessed_newspapers[newspaper]
 
-            article_list = create_article_list(extracted_file, newspaper)
+            article_list = create_article_list(newspaper_data_path, newspaper)
             sentence_list = preprocess_newspaper(article_list)
 
             dict_newspaper["no_of_articles"] = no_of_articles(article_list)
@@ -334,16 +326,42 @@ def master(extracted_file, newspaper_list):
             
     return preprocessed_newspapers
 
-
-processed_newspapers = master("data/news-data-extracted.json", newspaper_list)
-
-
-model = Word2Vec.load(f"WashingtonPost.com/WashingtonPost.com_w2v.model")
-
-
-model.wv.similarity("attacker", "terrorist")
+def run_flow():
+    '''
+    Controls what parts of the code to run
+    True -> run master
+    False -> only assess models
+    
+    returns: bool
+    '''
+    dir = pathlib.Path(".")
+    found_models = list(dir.rglob("*.model")) # Recursively find all the files with the .model extentions
+    if found_models:
+        
+        run_code_input = ''
+        while len(run_code_input) != 1: # While not y or n
+            run_code_input = str(input(f"\nWARNING: {len(found_models)} model(s) already exists, would you still like to create new models (y/n)\n'list' to display all the models\n"))
+            
+            if 'list' in run_code_input:
+                print(*found_models, sep="\n\n")
+            
+        return run_code_input == 'y'
+    
+    return True # No models were found
+            
+            
 
 if __name__ == "__main__":
+    run_master = run_flow()
+    if run_master:
+        processed_newspapers = master("src/israel/data/news-data-extracted.json", newspaper_list)
+
+
+    model = Word2Vec.load(f"WashingtonPost.com/WashingtonPost.com_w2v.model")
+
+
+    result = model.wv.similarity("attacker", "israeli")
+    print(f"Similarity Between 'attacker' and 'israeli' is {result} for washington post")
 
 
 
