@@ -2,6 +2,7 @@ import json
 import os
 from preprocess import Preprocessor
 from gensim.models import Word2Vec
+from tqdm import tqdm
 
 
 # ### Preprocess every article in the newspaper to create a corpus
@@ -32,24 +33,24 @@ def create_article_list(newspaper_data_path, newspaper_name):
     print(f"Extracted {len(newspaper_articles)} articles from {newspaper_name}. ({newspaper_data_path})")
     return newspaper_articles
 
-
-
 def preprocess_newspaper(article_list):
     """ 
     Takes in article list and returns a list of list which is preprocessed article in the form 
-        of every element in the list is a sentence which consist of lists of words
+    of every element in the list is a sentence which consist of lists of words
+    
+    input: [str]
+    return: [[str]]
     """
-
+    preprocessor = Preprocessor()
     if not article_list:  # Handle empty or None input
         print("No articles provided for preprocessing.")
         return []
 
     preprocessed_article_list = []
 
-    for i, article in enumerate(article_list):
-        preprocessed_article_list.extend(preprocess_article(article))  # extends preproccessed
+    for article in tqdm(article_list, desc="Preprocessing", unit="article"):
+        preprocessed_article_list.extend(preprocessor.preprocess_article(article))
         # articles to newspaper's article list
-        print(f"article {i} preprocessed")
 
     return preprocessed_article_list
 
