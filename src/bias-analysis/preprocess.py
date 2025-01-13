@@ -14,8 +14,8 @@ class Preprocessor:
         '''
         Tokenizes article into sentences, which are then tokenized into words
         
-        input: ONE article
-        returns: list of generator objects (each a sentence)
+        input: str || ONE article
+        returns: [generator] || list of generator objects, each a sentence 
         '''
             
         sentences  = sent_tokenize(article, language="english") # divide article into sentences
@@ -27,6 +27,10 @@ class Preprocessor:
         return tokenized_article
 
     def lowercase(self, tokenized_article):
+        '''
+        input: [generator]
+        output: [str]
+        '''
         lowercase_article = []
 
         # Could use list comprehensions here
@@ -38,21 +42,24 @@ class Preprocessor:
 
         return lowercase_article
 
-    def remove_stopwords(self, tokenized_article):
+    def remove_stopwords(self, tokenized_article) :
         '''
         Removes stopwords (common words that carry no or little meaning -> to, there, the, when, where, etc.)
-        '''
         
+        input: [str]
+        output: [str]
+        '''
+        filtered_tokenized_article = []
         # Iterate over the index and content of each sentence
-        for i in range(len(tokenized_article)):
+        for sentence in tokenized_article:
             # Create a new list for the filtered sentence
             filtered_sentence = []
-            for word in tokenized_article[i]:
+            for word in sentence:
                 if word not in self.stop_words:
                     filtered_sentence.append(word)
             # Replace the original sentence with the filtered sentence
-            tokenized_article[i] = filtered_sentence
-        return tokenized_article
+            filtered_tokenized_article.append(filtered_sentence)
+        return filtered_tokenized_article
 
     def lammetization(tokenized_article):
         lammetizer = WordNetLemmatizer()
