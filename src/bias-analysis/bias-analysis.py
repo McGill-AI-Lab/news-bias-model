@@ -1,5 +1,8 @@
 import json
+import os
 from preprocess import Preprocessor
+from gensim.models import Word2Vec
+
 
 # ### Preprocess every article in the newspaper to create a corpus
 # Our corpus will have the format of lists (list of sentences) of lists (sentences)
@@ -11,7 +14,6 @@ def create_article_list(extracted_file, newspaper_name):
     Takes in the file of extracted news and the newspaper name.
     Outputs an article (text) list for the given newspaper.
     """
-    import json
 
     # Load the JSON file
     with open(extracted_file, "r") as json_file:
@@ -126,8 +128,6 @@ def occurance(target_word, preprocessed_article_list):
 # Trains a word2vec using gensim library and return the paths for model weights and word vectors
 
 def train(newspaper_name, sentence_list):
-    from gensim.models import Word2Vec
-    import os
 
     # Ensure the directory exists
     os.makedirs(newspaper_name, exist_ok=True)
@@ -211,8 +211,6 @@ def calculate_portrayal(model, palestinian_words, israeli_words, positive_portra
 
 # Save newspaper dictionary
 
-import json
-import os
 
 def save_newspaper_dict(newspaper_dict):
     # File path for the JSON file
@@ -230,10 +228,6 @@ def save_newspaper_dict(newspaper_dict):
     # Save updated data back to the file
     with open(file_path, "w") as json_file:
         json.dump(data, json_file, indent=4)
-
-
-import json
-import os
 
 def load_preprocessed_newspapers(json_file):
     """
@@ -272,8 +266,6 @@ def master(extracted_file, newspaper_list):
     bias score for palestine, israel, hamas, idf, etc,
     Add the following key to each articles
     """
-    from gensim.models import KeyedVectors
-    from gensim.models import Word2Vec
 
     preprocessed_newspapers = load_preprocessed_newspapers("preprocessed_newspapers_dict.json")
 
@@ -345,7 +337,6 @@ def master(extracted_file, newspaper_list):
 processed_newspapers = master("data/news-data-extracted.json", newspaper_list)
 
 
-from gensim.models import Word2Vec
 model = Word2Vec.load(f"WashingtonPost.com/WashingtonPost.com_w2v.model")
 
 
