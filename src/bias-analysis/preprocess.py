@@ -1,8 +1,13 @@
+#! May need to run this if a LookupError occurs
+# import nltk
+# nltk.download('wordnet')
+
 from gensim.utils import tokenize
 from nltk.tokenize import sent_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import re
+
 
 # We need to preprocess our data. Preprocessing includes dividing articles into sentences using nltk library, since Word2Vec is trained by using list of words (sentences). Nltk uses a machine learning model to decide how to divide an article into sentences, so there will be some inaccuracies, however we can ignore these. After, we want all words to be lowercase. We want to remove all extremely high-frequency words which don't really contribute to any of the word embeddings for other words they co-occur with as these high-frequency word co-occur with a big portion of our corpus. These words are called "stop words" and some example would be "I", "you", "of", "there" etc. Then, we lemmatize words, i.e. try to convert each word to their root (running -> run). The goal of this process is that so we have more information about the word "run", instead of the information being distributed between various forms of the word ("runs", "running", "ran"). For more information on lemmatizers: https://www.geeksforgeeks.org/python-lemmatization-with-nltk/. Finally, we remove punctuation and put all of these functions in one "preprocess" function.
 
@@ -115,3 +120,14 @@ class Preprocessor:
         return re_article
 
     # preprocessed = preprocess_article(first_article)
+
+import json
+if __name__ == "__main__":
+    with open('src/data/stanford_oval_ccnews/st_ccnews_2016_1try.json', 'r') as file:
+        data = json.load(file)
+
+    first_article_data = data["coventrytelegraph.net"][0]
+    first_article = first_article_data["text"]
+    preprocessor = Preprocessor()
+    preprocessed_shit = preprocessor.preprocess_article(first_article)
+    print(preprocessed_shit)
