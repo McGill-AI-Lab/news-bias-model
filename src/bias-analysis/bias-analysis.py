@@ -9,14 +9,14 @@ from gensim.models import Word2Vec
 # We first create a list where each element is the text from a different article of the newspaper.
 # We then run preprocess_newspaper(article_list) on this list. 
 
-def create_article_list(extracted_file, newspaper_name):
+def create_article_list(newspaper_data_path, newspaper_name):
     """
     Takes in the file of extracted news and the newspaper name.
-    Outputs an article (text) list for the given newspaper.
+    Outputs: [str] || list of articles from the newspaper source
     """
 
     # Load the JSON file
-    with open(extracted_file, "r") as json_file:
+    with open(newspaper_data_path, "r") as json_file:
         data = json.load(json_file)
 
     # Extract newspaper data
@@ -27,9 +27,9 @@ def create_article_list(extracted_file, newspaper_name):
     for article in newspaper:
         # Check if article has a valid "text" key
         if article and isinstance(article, dict) and "text" in article:
-            newspaper_articles.append(article["text"])  # Use append to add the text to the list
+            newspaper_articles.append(article["text"])  # add only the text
 
-    print(f"Extracted {len(newspaper_articles)} articles from {newspaper_name}.")
+    print(f"Extracted {len(newspaper_articles)} articles from {newspaper_name}. ({newspaper_data_path})")
     return newspaper_articles
 
 
