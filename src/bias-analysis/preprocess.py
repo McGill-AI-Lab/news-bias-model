@@ -62,6 +62,12 @@ class Preprocessor:
         return filtered_tokenized_article
 
     def lammetization(self, tokenized_article):
+        '''
+        Reduces words to their base form 
+        
+        input: [str]
+        output: [str]
+        '''
         lammetizer = WordNetLemmatizer()
 
         lammetized_article = []
@@ -76,6 +82,10 @@ class Preprocessor:
 
 
     def remove_punctuation(self, tokenized_article):
+        '''
+        input: [str]
+        output: [str]
+        '''
         punc_removed_article = []
 
         for sentence in tokenized_article:
@@ -91,6 +101,12 @@ class Preprocessor:
         return punc_removed_article
 
     def preprocess_article(self, article):
+        '''
+        Preprocess ONE article
+        
+        input: str
+        output: [str]
+        '''
         t_article = self.tokenize_article(article)
         l_article = self.lowercase(t_article)
         r_article = self.remove_stopwords(l_article)
@@ -98,4 +114,4 @@ class Preprocessor:
         re_article = self.remove_punctuation(la_article)
         return re_article
 
-    preprocessed = preprocess_article(first_article)
+    # preprocessed = preprocess_article(first_article)
