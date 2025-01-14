@@ -11,49 +11,97 @@ import pathlib
 # We first create a list where each element is the text from a different article of the newspaper.
 # We then run preprocess_newspaper(article_list) on this list. 
 
-def create_article_list(newspaper_data_path, newspaper_name):
-    """
-    Takes in the file of extracted news and the newspaper name.
-    Outputs: [str] || list of articles from the newspaper source
-    """
+class FileHandler():
+    def __init__():
+        ...
 
-    # Load the JSON file
-    with open(newspaper_data_path, "r") as json_file:
-        data = json.load(json_file)
+    def create_article_list(self, newspaper_data_path, newspaper_name):
+        """
+        Takes in the file of extracted news and the newspaper name.
+        
+        Outputs: [str] || list of articles from the newspaper source
+        """
 
-    # Extract newspaper data
-    newspaper = data.get(newspaper_name, [])  # Default to an empty list if not found
-    newspaper_articles = []
+        # Load the JSON file
+        with open(newspaper_data_path, "r") as json_file:
+            data = json.load(json_file)
 
-    # Loop through articles in the newspaper
-    for article in newspaper:
-        # Check if article has a valid "text" key
-        if article and isinstance(article, dict) and "text" in article:
-            newspaper_articles.append(article["text"])  # add only the text
+        # Extract newspaper data
+        newspaper = data.get(newspaper_name, [])  # Default to an empty list if not found
+        newspaper_articles = []
 
-    print(f"Extracted {len(newspaper_articles)} articles from {newspaper_name}. ({newspaper_data_path})")
-    return newspaper_articles
+        # Loop through articles in the newspaper
+        for article in newspaper:
+            # Check if article has a valid "text" key
+            if article and isinstance(article, dict) and "text" in article:
+                newspaper_articles.append(article["text"])  # add only the text
 
-def preprocess_newspaper(article_list):
-    """ 
-    Takes in article list and returns a list of list which is preprocessed article in the form 
-    of every element in the list is a sentence which consist of lists of words
+        print(f"Extracted {len(newspaper_articles)} articles from {newspaper_name}. ({newspaper_data_path})")
+        
+        return newspaper_articles
     
-    input: [str]
-    return: [[str]]
-    """
-    preprocessor = Preprocessor()
-    if not article_list:  # Handle empty or None input
-        print("No articles provided for preprocessing.")
-        return []
+    def save_newspaper_dict(self, newspaper_dict):
+        # File path for the JSON file
+        file_path = "src/data/preprocessed_newspapers_dict.json"
 
-    preprocessed_article_list = []
+        # Open the JSON file
+        with open(file_path, "r") as json_file:
+            data = json.load(json_file)  # Load existing data
 
-    for article in tqdm(article_list, desc="Preprocessing", unit="article"):
-        preprocessed_article_list.extend(preprocessor.preprocess_article(article))
-        # articles to newspaper's article list
+        # Iterate over items in the dictionary
+        for key, value in newspaper_dict.items():  # Use .items() to get key-value pairs
+            if key not in data:
+                data[key] = value  # Save new key-value pair
 
-    return preprocessed_article_list
+        # Save updated data back to the file
+        with open(file_path, "w") as json_file:
+            json.dump(data, json_file, indent=4)
+            
+    
+    def load_preprocessed_newspapers(json_file):
+        """
+        Load preprocessed newspapers from a JSON file.
+        """
+        if os.path.exists(json_file):
+            try:
+                with open(json_file, 'r') as file:
+                    data = json.load(file)
+                    if isinstance(data, dict):
+                        print(f"Successfully loaded preprocessed newspapers from {json_file}.")
+                        return data
+                    else:
+                        print("Error: JSON data is not a dictionary. Returning an empty dictionary.")
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON file {json_file}: {e}")
+        else:
+            print(f"File {json_file} does not exist. Starting with an empty dictionary.")
+
+        return {}
+
+class BiasAnalysis():
+    def __init__():
+        ...
+    
+    def preprocess_newspaper(self, article_list):
+        """ 
+        Takes in article list and returns a list of list which is preprocessed article in the form 
+        of every element in the list is a sentence which consist of lists of words
+        
+        input: [str]
+        return: [[str]]
+        """
+        preprocessor = Preprocessor()
+        if not article_list:  # Handle empty or None input
+            print("No articles provided for preprocessing.")
+            return []
+
+        preprocessed_article_list = []
+
+        for article in tqdm(article_list, desc="Preprocessing", unit="article"):
+            preprocessed_article_list.extend(preprocessor.preprocess_article(article))
+            # articles to newspaper's article list
+
+        return preprocessed_article_list
 
 # Create helper functions to analyze our newspaper and corpus. These functions will help us see: 
 # - how many articles are there in the newspaper about our selected topic (Israel-Palestine) since we only scraped relevant articles
@@ -63,189 +111,142 @@ def preprocess_newspaper(article_list):
 
 # create get_article_number, corpus size, and other helper functions
 
-def no_of_articles(article_list):
-    return len(article_list)
+    def no_of_articles(self, article_list):
+        return len(article_list)
 
-def corpus_size_before(article_list):
-    corpus = article_list
+    def corpus_size_before(self, article_list):
+        
+        corpus_size = 0
+        for article in article_list:
+            corpus_size += len(article.split())
+            
 
-    corpus_size = 0
-    for article in article_list:
-        corpus_size += len(article.split())
-
-    return corpus_size
-
-
-def corpus_size_after(preprocessed_article_list):
-    corpus = preprocessed_article_list
-
-    corpus_size = 0
-    for sentence in corpus:
-        for word in sentence:
-            corpus_size += 1
-
-    return corpus_size
+        return corpus_size
 
 
-def no_of_unique_words(preprocessed_article_list):
-    words = []
+    def corpus_size_after(self, preprocessed_article_list):
+        corpus = preprocessed_article_list
 
-    for sentence in preprocessed_article_list:
-        for word in sentence:
-            if word in words:
-                pass
-            else:
-                words.append(word)
+        corpus_size = 0
+        for sentence in corpus:
+            for word in sentence:
+                corpus_size += 1
 
-    return len(words)
-
-def no_of_sentences(preprocessed_article_list):
-    return len(preprocessed_article_list)
+        return corpus_size
 
 
-""" Occurance Counter """
+    def no_of_unique_words(self, preprocessed_article_list):
+        words = []
 
-# Palestine
-def occurance(target_word, preprocessed_article_list):
-    counter = 0
+        for sentence in preprocessed_article_list:
+            for word in sentence:
+                if word in words:
+                    pass
+                else:
+                    words.append(word)
 
-    for sentence in preprocessed_article_list:
-        for word in sentence:
-            if word == f"{target_word}":
-                counter += 1
-    
-    return counter
+        return len(words)
+
+    def no_of_sentences(self, preprocessed_article_list):
+        return len(preprocessed_article_list)
+
+    # Palestine
+    def occurance(target_word, preprocessed_article_list):
+        counter = 0
+
+        for sentence in preprocessed_article_list:
+            for word in sentence:
+                if word == f"{target_word}":
+                    counter += 1
+        
+        return counter
 
 
 # ### Training function
 # Trains a word2vec using gensim library and return the paths for model weights and word vectors
 
-def train(newspaper_name, sentence_list):
+    def train(self, newspaper_name, sentence_list):
 
-    # Ensure the directory exists
-    os.makedirs(newspaper_name, exist_ok=True)
+        # Ensure the directory exists
+        os.makedirs(newspaper_name, exist_ok=True)
 
-    # Train Word2Vec model
-    # Initialize the model with parameters
-    model = Word2Vec(
-        sentences=sentence_list,
-        vector_size=300,
-        window=5, # max distance between word and furthest word
-        min_count=10, # ignores words with <10 occurances
-        sg=1, # skip-gram
-        workers=4, # Threads
-        negative=20 # Negative sampling
-    )
+        # Train Word2Vec model
+        # Initialize the model with parameters
+        model = Word2Vec(
+            sentences=sentence_list,
+            vector_size=300,
+            window=5, # max distance between word and furthest word
+            min_count=10, # ignores words with <10 occurances
+            sg=1, # skip-gram
+            workers=4, # Threads
+            negative=20 # Negative sampling
+        )
 
-    # Train and save the model
-    model.train(sentence_list, total_examples=len(sentence_list), epochs=20)
-    
-    model_path = os.path.join(newspaper_name, f"{newspaper_name}_w2v.model")
-    model_path_txt = model_path.replace('.model','.txt')
-    model_path_bin = model_path.replace('.model','.bin')
-    
-    model.save(model_path)
-    
-    # Save just the word vectors in a text and binary format
-    model.wv.save_word2vec_format(model_path_txt, binary=False)
-    model.wv.save_word2vec_format(model_path_bin, binary=True)
-
-
-    return (
-        model_path,
-        model_path_txt,
-        model_path_bin
-    )
+        # Train and save the model
+        model.train(sentence_list, total_examples=len(sentence_list), epochs=20)
+        
+        model_path = os.path.join(newspaper_name, f"{newspaper_name}_w2v.model")
+        model_path_txt = model_path.replace('.model','.txt')
+        model_path_bin = model_path.replace('.model','.bin')
+        
+        model.save(model_path)
+        
+        # Save just the word vectors in a text and binary format
+        model.wv.save_word2vec_format(model_path_txt, binary=False)
+        model.wv.save_word2vec_format(model_path_bin, binary=True)
 
 
-# ### Calculate portrayal
-
-def calculate_portrayal(model, palestinian_words, israeli_words, positive_portrayal_words, negative_portrayal_words): # target_words and portrayal_words are lists
-    palestine_portrayal_scores = {}
-    israel_portrayal_scores = {}
-
-    # Access the list of words in the vocabulary
-    vocabulary_words = list(model.wv.key_to_index.keys())
-
-    # no of portrayal words
-    pos_count = 0
-    for word in positive_portrayal_words:
-        if word in vocabulary_words:
-            pos_count += 1
-            
-    neg_count = 0
-    for word in negative_portrayal_words:
-        if word in vocabulary_words:
-            neg_count += 1       
+        return (
+            model_path,
+            model_path_txt,
+            model_path_bin
+        )
 
 
-    for word in palestinian_words:
-        palestine_portrayal_scores[word] = 0
-        for positive in positive_portrayal_words:
-            if positive in vocabulary_words:
-                palestine_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive}")/pos_count)
-        for negative in negative_portrayal_words:
-            if positive in vocabulary_words:
-                palestine_portrayal_scores[word] -= (model.wv.similarity(f"{word}", f"{negative}")/neg_count)
+    # ### Calculate portrayal
 
-    for word in israeli_words:
-        israel_portrayal_scores[word] = 0
-        for positive in positive_portrayal_words:
-            if positive in vocabulary_words:
-                israel_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive}")/pos_count)
-        for negative in negative_portrayal_words:
-            if positive in vocabulary_words:
-                israel_portrayal_scores[word] -= (model.wv.similarity(f"{word}", f"{negative}")/neg_count)
+    def calculate_portrayal(self, model, palestinian_words, israeli_words, positive_portrayal_words, negative_portrayal_words): # target_words and portrayal_words are lists
+        palestine_portrayal_scores = {}
+        israel_portrayal_scores = {}
 
-    return palestine_portrayal_scores, israel_portrayal_scores
+        # Access the list of words in the vocabulary
+        vocabulary_words = list(model.wv.key_to_index.keys())
 
-
-# Should I include gaza, if yes, add an occurance function and add it to the target word_list and portrayal
-
-# Save newspaper dictionary
+        # no of portrayal words
+        pos_count = 0
+        for word in positive_portrayal_words:
+            if word in vocabulary_words:
+                pos_count += 1
+                
+        neg_count = 0
+        for word in negative_portrayal_words:
+            if word in vocabulary_words:
+                neg_count += 1       
 
 
-def save_newspaper_dict(newspaper_dict):
-    # File path for the JSON file
-    file_path = "src/data/preprocessed_newspapers_dict.json"
+        for word in palestinian_words:
+            palestine_portrayal_scores[word] = 0
+            for positive in positive_portrayal_words:
+                if positive in vocabulary_words:
+                    palestine_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive}")/pos_count)
+            for negative in negative_portrayal_words:
+                if positive in vocabulary_words:
+                    palestine_portrayal_scores[word] -= (model.wv.similarity(f"{word}", f"{negative}")/neg_count)
 
-    # Open the JSON file
-    with open(file_path, "r") as json_file:
-        data = json.load(json_file)  # Load existing data
+        for word in israeli_words:
+            israel_portrayal_scores[word] = 0
+            for positive in positive_portrayal_words:
+                if positive in vocabulary_words:
+                    israel_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive}")/pos_count)
+            for negative in negative_portrayal_words:
+                if positive in vocabulary_words:
+                    israel_portrayal_scores[word] -= (model.wv.similarity(f"{word}", f"{negative}")/neg_count)
 
-    # Iterate over items in the dictionary
-    for key, value in newspaper_dict.items():  # Use .items() to get key-value pairs
-        if key not in data:
-            data[key] = value  # Save new key-value pair
-
-    # Save updated data back to the file
-    with open(file_path, "w") as json_file:
-        json.dump(data, json_file, indent=4)
-
-def load_preprocessed_newspapers(json_file):
-    """
-    Load preprocessed newspapers from a JSON file.
-    """
-    if os.path.exists(json_file):
-        try:
-            with open(json_file, 'r') as file:
-                data = json.load(file)
-                if isinstance(data, dict):
-                    print(f"Successfully loaded preprocessed newspapers from {json_file}.")
-                    return data
-                else:
-                    print("Error: JSON data is not a dictionary. Returning an empty dictionary.")
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON file {json_file}: {e}")
-    else:
-        print(f"File {json_file} does not exist. Starting with an empty dictionary.")
-
-    return {}
+        return palestine_portrayal_scores, israel_portrayal_scores
 
 
-newspaper_list = ["cnn.com", "WashingtonPost.com"]
 
-def master(newspaper_data_path, newspaper_list):
+def master(self, newspaper_data_path, newspaper_list):
     """
     Get a list of newspapers
     Create a dictionary of newspapers, which is a dictionary
@@ -352,7 +353,10 @@ def run_flow():
             
 
 if __name__ == "__main__":
+    newspaper_list = ["cnn.com", "WashingtonPost.com"]
+
     run_master = run_flow()
+    
     if run_master:
         processed_newspapers = master("src/israel/data/news-data-extracted.json", newspaper_list)
 
