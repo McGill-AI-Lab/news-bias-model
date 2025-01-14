@@ -12,10 +12,11 @@ import pathlib
 # We then run preprocess_newspaper(article_list) on this list. 
 
 class FileHandler():
-    def __init__():
-        ...
+    def __init__(self):
+        self.preprocessed_newspapers_path = "src/data/preprocessed_newspapers_dict.json"
+        self.newspaper_data_path = "src/israel/data/news-data-extracted.json"
 
-    def create_article_list(self, newspaper_data_path, newspaper_name):
+    def create_article_list(self, newspaper_name):
         """
         Takes in the file of extracted news and the newspaper name.
         
@@ -23,7 +24,7 @@ class FileHandler():
         """
 
         # Load the JSON file
-        with open(newspaper_data_path, "r") as json_file:
+        with open(self.newspaper_data_path, "r") as json_file:
             data = json.load(json_file)
 
         # Extract newspaper data
@@ -36,16 +37,13 @@ class FileHandler():
             if article and isinstance(article, dict) and "text" in article:
                 newspaper_articles.append(article["text"])  # add only the text
 
-        print(f"Extracted {len(newspaper_articles)} articles from {newspaper_name}. ({newspaper_data_path})")
+        print(f"Extracted {len(newspaper_articles)} articles from {newspaper_name}. ({self.newspaper_data_path})")
         
         return newspaper_articles
     
     def save_newspaper_dict(self, newspaper_dict):
-        # File path for the JSON file
-        file_path = "src/data/preprocessed_newspapers_dict.json"
-
         # Open the JSON file
-        with open(file_path, "r") as json_file:
+        with open(self.preprocessed_newspapers_path, "r") as json_file:
             data = json.load(json_file)  # Load existing data
 
         # Iterate over items in the dictionary
@@ -53,34 +51,38 @@ class FileHandler():
             if key not in data:
                 data[key] = value  # Save new key-value pair
 
-        # Save updated data back to the file
-        with open(file_path, "w") as json_file:
+        #! Save updated data back to the file
+        with open(self.preprocessed_newspapers_path, "w") as json_file:
             json.dump(data, json_file, indent=4)
             
     
-    def load_preprocessed_newspapers(json_file):
+    def load_preprocessed_newspapers(self):
         """
         Load preprocessed newspapers from a JSON file.
         """
-        if os.path.exists(json_file):
+        if os.path.exists(self.preprocessed_newspapers_path):
             try:
-                with open(json_file, 'r') as file:
+                with open(self.reprocessed_newspapers_path, 'r') as file:
                     data = json.load(file)
                     if isinstance(data, dict):
-                        print(f"Successfully loaded preprocessed newspapers from {json_file}.")
+                        print(f"Successfully loaded preprocessed newspapers from {self.reprocessed_newspapers_path}.")
                         return data
                     else:
                         print("Error: JSON data is not a dictionary. Returning an empty dictionary.")
+                        
             except json.JSONDecodeError as e:
-                print(f"Error decoding JSON file {json_file}: {e}")
+                print(f"Error decoding JSON file {self.reprocessed_newspapers_path}: {e}")
         else:
-            print(f"File {json_file} does not exist. Starting with an empty dictionary.")
+            print(f"File {self.reprocessed_newspapers_path} does not exist. Starting with an empty dictionary.")
 
         return {}
 
 class BiasAnalysis():
-    def __init__():
-        ...
+    def __init__(self):
+        self.file_handler = FileHandler()
+        self.preprocessor = Preprocessor()
+
+        self.preprocessed_articles = ...
     
     def preprocess_newspaper(self, article_list):
         """ 
@@ -90,7 +92,6 @@ class BiasAnalysis():
         input: [str]
         return: [[str]]
         """
-        preprocessor = Preprocessor()
         if not article_list:  # Handle empty or None input
             print("No articles provided for preprocessing.")
             return []
@@ -246,7 +247,7 @@ class BiasAnalysis():
 
 
 
-def master(self, newspaper_data_path, newspaper_list):
+def master(self, newspaper_list):
     """
     Get a list of newspapers
     Create a dictionary of newspapers, which is a dictionary
@@ -270,7 +271,7 @@ def master(self, newspaper_data_path, newspaper_list):
             preprocessed_newspapers[newspaper] = {}
             dict_newspaper = preprocessed_newspapers[newspaper]
 
-            article_list = create_article_list(newspaper_data_path, newspaper)
+            article_list = create_article_list(newspaper)
             sentence_list = preprocess_newspaper(article_list)
 
             dict_newspaper["no_of_articles"] = no_of_articles(article_list)
@@ -354,11 +355,10 @@ def run_flow():
 
 if __name__ == "__main__":
     newspaper_list = ["cnn.com", "WashingtonPost.com"]
-
     run_master = run_flow()
-    
+    bias_analysis = BiasAnalysis()
     if run_master:
-        processed_newspapers = master("src/israel/data/news-data-extracted.json", newspaper_list)
+        processed_newspapers = master(newspaper_list)
 
 
     model = Word2Vec.load(f"WashingtonPost.com/WashingtonPost.com_w2v.model")
