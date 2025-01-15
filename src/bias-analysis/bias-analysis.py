@@ -2,7 +2,7 @@ import json
 import os
 from preprocess import Preprocessor
 from gensim.models import Word2Vec
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import pathlib
 
 
@@ -15,6 +15,7 @@ class FileHandler():
     def __init__(self):
         self.preprocessed_newspapers_path = "src/data/preprocessed_newspapers_dict.json"
         self.newspaper_data_path = "src/israel/data/news-data-extracted.json"
+        self.portrayal_words_path = "src/bias-analysis/portrayal_words.json"
 
     def create_article_list(self, newspaper_name):
         """
@@ -79,6 +80,17 @@ class FileHandler():
             print(f"File {self.preprocessed_newspapers_path} does not exist. Starting with an empty dictionary.")
 
         return {}
+    
+    def load_portrayal_words(self):
+        '''
+        read JSON file with portrayal word lists 
+        
+        keys: palestinian_words, israeli_words, positive_portrayal_words, negative_portrayal_words
+        returns: dict -> str:[str]
+        '''
+        with open(self.portrayal_words_path, "r") as json_file:
+            words_dict = json.load(json_file)
+        return words_dict
 
 
 # Create helper functions to analyze our newspaper and corpus. These functions will help us see: 
@@ -90,13 +102,11 @@ class BiasAnalysis():
         self.file_handler = FileHandler()
         self.preprocessor = Preprocessor()
         
-        
-        self.palestinian_words = ["palestine", "palestinian", "hamas", "sinwar"]
-        self.israeli_words = ["israel", "israeli", "idf", "netanyahu"]
-
-        # positive categories: general (good etc), victim, 
-        self.positive_portrayal_words = ["positive", "good", "victim", "resilient", "justified", "defend", "innocent", "rightful", "humane"]
-        self.negative_portrayal_words = ["negative", "bad", "aggressor", "attacker", "brutal", "illegal", "terrorist", "barbaric", "massacre", "invade"]
+        portrayal_words = self.file_handler.load_portrayal_words()
+        self.palestinian_words = portrayal_words["palestinian_words"]
+        self.israeli_words = portrayal_words["israeli_words"]
+        self.positive_portrayal_words = portrayal_words["positive_portrayal_words"] # ex. humane, victim
+        self.negative_portrayal_words = portrayal_words["negative_portrayal_words"] # ex. aggressor, terrorist
 
     def no_of_articles(self, article_list):
         return len(article_list)
@@ -154,10 +164,10 @@ class BiasAnalysis():
 
         returns: tuple of file paths
         '''
+        print("Starting model training")
         # Ensure the directory exists
         os.makedirs(newspaper_name, exist_ok=True)
 
-        # Train Word2Vec model
         # Initialize the model with parameters
         model = Word2Vec(
             sentences=sentence_list,
@@ -169,8 +179,9 @@ class BiasAnalysis():
             negative=20 # Negative sampling
         )
 
-        # Train and save the model
+        print("Starting Training...")
         model.train(sentence_list, total_examples=len(sentence_list), epochs=20)
+        print("Trained Model")
         
         model_path = os.path.join(newspaper_name, f"{newspaper_name}_w2v.model")
         model_path_txt = model_path.replace('.model','.txt')
@@ -181,7 +192,7 @@ class BiasAnalysis():
         # Save just the word vectors in a text and binary format
         model.wv.save_word2vec_format(model_path_txt, binary=False)
         model.wv.save_word2vec_format(model_path_bin, binary=True)
-
+        print("Saved Model")
 
         return (
             model_path,
@@ -295,10 +306,9 @@ class BiasAnalysis():
 
         preprocessed_newspapers = self.file_handler.load_preprocessed_newspapers()
 
-        # check if the newspaper is already preprocessed, if it is skip it
         for newspaper in newspaper_list:
+            # check if the newspaper is already preprocessed, if it is skip it
             if f"{newspaper}" not in preprocessed_newspapers:
-
                 article_list = self.file_handler.create_article_list(newspaper)
                 sentence_list = self.preprocessor.preprocess_newspaper(article_list)
                 
@@ -322,7 +332,7 @@ class BiasAnalysis():
                 self.file_handler.save_newspaper_dict(preprocessed_newspapers)
                 
         return preprocessed_newspapers
-
+    
 def run_flow():
     '''
     Controls what parts of the code to run
@@ -353,10 +363,13 @@ if __name__ == "__main__":
     bias_analysis = BiasAnalysis()
 
     if run_master:
-        processed_newspapers = bias_analysis.main(newspaper_list)
+        processed_newspapers  = bias_analysis.main(newspaper_list)
 
 
     model = Word2Vec.load(f"WashingtonPost.com/WashingtonPost.com_w2v.model")
 
     result = model.wv.similarity("attacker", "israeli")
+    # print(model.wv.most_similar('terrorism', topn=10))
+    # print(model.wv.most_similar('peace', topn=10))
+    # print(model.wv.most_similar('occupation', topn=10))
     print(f"Similarity Between 'attacker' and 'israeli' is {result} for washington post")

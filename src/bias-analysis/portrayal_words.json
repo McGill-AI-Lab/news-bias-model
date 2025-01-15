@@ -1,0 +1,16 @@
+{   
+    "palestinian_words": ["palestine", "palestinian", "hamas", "sinwar"],
+    "israeli_words" : ["israel", "israeli", "idf", "netanyahu", "zionist", "zionism"],
+    "positive_portrayal_words": [
+        "positive", "good", "victim", "resilient", "justified", "defend", "innocent", 
+        "rightful", "humane", "brave", "heroic", "courageous", "defender", "liberator", 
+        "martyr", "freedom fighter", "just cause", "honorable", "virtuous", "protector", 
+        "peaceful", "noble", "merciful", "righteous", "legitimate", "peacekeeper", "survivor", 
+        "humanitarian", "compassionate", "altruistic", "advocate", "benevolent"],
+    "negative_portrayal_words": [
+        "negative", "bad", "aggressor", "attacker", "brutal", "illegal", "terrorist", 
+        "barbaric", "massacre", "invade", "occupier", "oppressor", "colonizer", "criminal", 
+        "hostile", "murderer", "savage", "genocidal", "dictator", "tyrant", "repressive", 
+        "fanatic", "extremist", "militant", "radical", "warmonger", "exploitative", 
+        "barbarism", "atrocities", "inhumane", "destructive", "genocide", "criminal", "slaughter"] 
+}
