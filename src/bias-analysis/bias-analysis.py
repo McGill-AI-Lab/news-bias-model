@@ -89,6 +89,14 @@ class BiasAnalysis():
     def __init__(self):
         self.file_handler = FileHandler()
         self.preprocessor = Preprocessor()
+        
+        
+        self.palestinian_words = ["palestine", "palestinian", "hamas", "sinwar"]
+        self.israeli_words = ["israel", "israeli", "idf", "netanyahu"]
+
+        # positive categories: general (good etc), victim, 
+        self.positive_portrayal_words = ["positive", "good", "victim", "resilient", "justified", "defend", "innocent", "rightful", "humane"]
+        self.negative_portrayal_words = ["negative", "bad", "aggressor", "attacker", "brutal", "illegal", "terrorist", "barbaric", "massacre", "invade"]
 
     def no_of_articles(self, article_list):
         return len(article_list)
@@ -140,11 +148,12 @@ class BiasAnalysis():
         return counter
 
 
-# ### Training function
-# Trains a word2vec using gensim library and return the paths for model weights and word vectors
-
     def train(self, newspaper_name, sentence_list):
+        '''
+        Trains a word2vec using gensim library and return the paths for model weights
 
+        returns: tuple of file paths
+        '''
         # Ensure the directory exists
         os.makedirs(newspaper_name, exist_ok=True)
 
@@ -181,9 +190,10 @@ class BiasAnalysis():
         )
 
 
-    # ### Calculate portrayal
-
-    def calculate_portrayal(self, model, palestinian_words, israeli_words, positive_portrayal_words, negative_portrayal_words): # target_words and portrayal_words are lists
+    def calculate_portrayal(self, model):
+        '''
+        Finds how similar keywords are to pos / neg words (ex. israel & victim)
+        '''
         palestine_portrayal_scores = {}
         israel_portrayal_scores = {}
 
@@ -192,36 +202,81 @@ class BiasAnalysis():
 
         # no of portrayal words
         pos_count = 0
-        for word in positive_portrayal_words:
+        for word in self.positive_portrayal_words:
             if word in vocabulary_words:
                 pos_count += 1
                 
         neg_count = 0
-        for word in negative_portrayal_words:
+        for word in self.negative_portrayal_words:
             if word in vocabulary_words:
                 neg_count += 1       
 
-
-        for word in palestinian_words:
+        for word in self.palestinian_words:
             palestine_portrayal_scores[word] = 0
-            for positive in positive_portrayal_words:
+            for positive in self.positive_portrayal_words:
                 if positive in vocabulary_words:
                     palestine_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive}")/pos_count)
-            for negative in negative_portrayal_words:
+            for negative in self.negative_portrayal_words:
                 if positive in vocabulary_words:
                     palestine_portrayal_scores[word] -= (model.wv.similarity(f"{word}", f"{negative}")/neg_count)
 
-        for word in israeli_words:
+        for word in self.israeli_words:
             israel_portrayal_scores[word] = 0
-            for positive in positive_portrayal_words:
+            for positive in self.positive_portrayal_words:
                 if positive in vocabulary_words:
                     israel_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive}")/pos_count)
-            for negative in negative_portrayal_words:
+            for negative in self.negative_portrayal_words:
                 if positive in vocabulary_words:
                     israel_portrayal_scores[word] -= (model.wv.similarity(f"{word}", f"{negative}")/neg_count)
 
         return palestine_portrayal_scores, israel_portrayal_scores
 
+
+    def create_dict(self, article_list, sentence_list, model_paths, portrayal_palestine_dict, portrayal_israel_dict):
+        dict_newspaper = {}
+        
+        portrayal_palestine_score = 0
+        for _, value in portrayal_palestine_dict.items():
+            portrayal_palestine_score += (value/4)  # divide by four to get the average
+
+        portrayal_israel_score = 0
+        for _, value in portrayal_israel_dict.items():
+            portrayal_israel_score += (value/4)
+            
+        palestine_israel_difference = portrayal_palestine_score - portrayal_israel_score
+        print("Palestinians are better portrayed by: ", palestine_israel_difference)
+
+        model_path, model_path_txt, model_path_bin = model_paths
+        
+        dict_newspaper["no_of_articles"] = self.no_of_articles(article_list)
+        dict_newspaper["corpus_size_before_preprocess"] = self.corpus_size_before(article_list)
+        dict_newspaper["corpus_size"] = self.corpus_size_after(sentence_list)
+        dict_newspaper["no_of_unique_words"] = self.no_of_unique_words(sentence_list)
+        dict_newspaper["no_of_sentences"] = self.no_of_sentences(sentence_list)
+        
+        dict_newspaper["occurance_palestine"] = self.occurance("palestine", sentence_list)
+        dict_newspaper["occurance_palestinian"] = self.occurance("palestinian", sentence_list)
+        dict_newspaper["occurance_hamas"] = self.occurance("hamas", sentence_list)
+        dict_newspaper["occurance_sinwar"] = self.occurance("sinwar", sentence_list)
+        dict_newspaper["occurance_israel"] = self.occurance("israel", sentence_list)
+        dict_newspaper["occurance_israeli"] = self.occurance("israeli", sentence_list)
+        dict_newspaper["occurance_idf"] = self.occurance("idf", sentence_list)
+        dict_newspaper["occurance_netanyahu"] = self.occurance("netanyahu", sentence_list)
+        
+        dict_newspaper["model_location"] = model_path
+        dict_newspaper["vectors_txt_location"] = model_path_txt
+        dict_newspaper["vectors_bin_location"] = model_path_bin
+        
+        dict_newspaper["portrayal_palestine"] = portrayal_palestine_dict
+        dict_newspaper["portrayal_palestine_score"] = portrayal_palestine_score
+        dict_newspaper["portrayal_israel"] = portrayal_israel_dict
+        dict_newspaper["portrayal_israel_score"] = portrayal_israel_score
+        dict_newspaper["palestine-israel_score"] = palestine_israel_difference
+        
+        dict_newspaper["articles"] = article_list
+        dict_newspaper["preprocessed"] = sentence_list
+        
+        return dict_newspaper
 
 
     def main(self, newspaper_list):
@@ -240,66 +295,30 @@ class BiasAnalysis():
 
         preprocessed_newspapers = self.file_handler.load_preprocessed_newspapers()
 
-
         # check if the newspaper is already preprocessed, if it is skip it
         for newspaper in newspaper_list:
             if f"{newspaper}" not in preprocessed_newspapers:
-                preprocessed_newspapers[newspaper] = {}
-                dict_newspaper = preprocessed_newspapers[newspaper]
 
                 article_list = self.file_handler.create_article_list(newspaper)
                 sentence_list = self.preprocessor.preprocess_newspaper(article_list)
+                
+                model_paths = self.train(newspaper, sentence_list)
 
-                dict_newspaper["no_of_articles"] = self.no_of_articles(article_list)
-                dict_newspaper["corpus_size_before_preprocess"] = self.corpus_size_before(article_list)
-                dict_newspaper["corpus_size"] = self.corpus_size_after(sentence_list)
-                dict_newspaper["no_of_unique_words"] = self.no_of_unique_words(sentence_list)
-                dict_newspaper["no_of_sentences"] = self.no_of_sentences(sentence_list)
-                dict_newspaper["occurance_palestine"] = self.occurance("palestine", sentence_list)
-                dict_newspaper["occurance_palestinian"] = self.occurance("palestinian", sentence_list)
-                dict_newspaper["occurance_hamas"] = self.occurance("hamas", sentence_list)
-                dict_newspaper["occurance_sinwar"] = self.occurance("sinwar", sentence_list)
-                dict_newspaper["occurance_israel"] = self.occurance("israel", sentence_list)
-                dict_newspaper["occurance_israeli"] = self.occurance("israeli", sentence_list)
-                dict_newspaper["occurance_idf"] = self.occurance("idf", sentence_list)
-                dict_newspaper["occurance_netanyahu"] = self.occurance("netanyahu", sentence_list)
-                dict_newspaper["model_location"] = ""
-                dict_newspaper["vectors_txt_location"] = ""
-                dict_newspaper["vectors_bin_location"] = ""
-                dict_newspaper["portrayal_palestine"] = {}
-                dict_newspaper["portrayal_palestine_score"] = 0
-                dict_newspaper["portrayal_israel"] = {}
-                dict_newspaper["portrayal_israel_score"] = 0
-                dict_newspaper["palestine-israel_score"] = 0
-                dict_newspaper["articles"] = article_list
-                dict_newspaper["preprocessed"] = sentence_list
-
-                # actually fill out the values for model-related keys
-                dict_newspaper["model_location"], dict_newspaper["vectors_txt_location"], dict_newspaper["vectors_bin_location"] = self.train(newspaper, sentence_list)
-
-                # Load the model from a file
                 model = Word2Vec.load(f"{newspaper}/{newspaper}_w2v.model")
+                portrayal_palestine, portrayal_israel = self.calculate_portrayal(model)
+                
+                # print(f"{newspaper}", portrayal_palestine, portrayal_israel)
 
 
-                palestinian_words = ["palestine", "palestinian", "hamas", "sinwar"]
-                israeli_words = ["israel", "israeli", "idf", "netanyahu"]
-
-                # positive categories: general (good etc), victim, 
-                positive_portrayal_words = ["positive", "good", "victim", "resilient", "justified", "defend", "innocent", "rightful", "humane"]
-                negative_portrayal_words = ["negative", "bad", "aggressor", "attacker", "brutal", "illegal", "terrorist", "barbaric", "massacre", "invade"]
-
-                dict_newspaper["portrayal_palestine"], dict_newspaper["portrayal_israel"] = self.calculate_portrayal(model,  palestinian_words, israeli_words, positive_portrayal_words, negative_portrayal_words)
-                print(f"{newspaper}", dict_newspaper["portrayal_palestine"], dict_newspaper["portrayal_israel"])
-
-                for key, value in dict_newspaper["portrayal_palestine"].items():
-                    dict_newspaper["portrayal_palestine_score"] += (value/4)  # divide by four to get the average
-
-                for key, value in dict_newspaper["portrayal_israel"].items():
-                    dict_newspaper["portrayal_israel_score"] += (value/4)
-
-                dict_newspaper["palestine-israel_score"] = dict_newspaper["portrayal_palestine_score"] - dict_newspaper["portrayal_israel_score"]
-                print("palestinian are better portrayed by: ", dict_newspaper["palestine-israel_score"])
-
+                preprocesed_newspaper_data = self.create_dict(
+                    article_list=article_list, 
+                    sentence_list=sentence_list, 
+                    model_paths=model_paths, 
+                    portrayal_israel_dict=portrayal_israel, 
+                    portrayal_palestine_dict=portrayal_palestine
+                )
+                preprocessed_newspapers[newspaper] = preprocesed_newspaper_data
+                
                 self.file_handler.save_newspaper_dict(preprocessed_newspapers)
                 
         return preprocessed_newspapers
