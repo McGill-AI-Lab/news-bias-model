@@ -147,7 +147,7 @@ class BiasAnalysis():
         return len(preprocessed_article_list)
 
     # Palestine
-    def occurance(target_word, preprocessed_article_list):
+    def occurance(self, target_word, preprocessed_article_list):
         counter = 0
 
         for sentence in preprocessed_article_list:
@@ -329,7 +329,7 @@ class BiasAnalysis():
                 )
                 preprocessed_newspapers[newspaper] = preprocesed_newspaper_data
                 
-                self.file_handler.save_newspaper_dict(preprocessed_newspapers)
+                self.file_handler.save_preprocessed_newspapers(preprocessed_newspapers)
                 
         return preprocessed_newspapers
     
