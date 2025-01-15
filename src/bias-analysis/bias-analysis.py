@@ -23,86 +23,61 @@ class FileHandler():
         Outputs: [str] || list of articles from the newspaper source
         """
 
-        # Load the JSON file
         with open(self.newspaper_data_path, "r") as json_file:
             data = json.load(json_file)
 
-        # Extract newspaper data
-        newspaper = data.get(newspaper_name, [])  # Default to an empty list if not found
-        newspaper_articles = []
+        # Extract all articles from newspaper_source
+        newspaper_source = data.get(newspaper_name, [])  # Default to an empty list if not found
 
-        # Loop through articles in the newspaper
-        for article in newspaper:
-            # Check if article has a valid "text" key
-            if article and isinstance(article, dict) and "text" in article:
-                newspaper_articles.append(article["text"])  # add only the text
+        # Loop through articles from newspaper source
+        newspaper_articles = []
+        for article in newspaper_source:
+            if article and isinstance(article, dict) and "text" in article: # Check if article has what we need
+
+                newspaper_articles.append(article["text"])
 
         print(f"Extracted {len(newspaper_articles)} articles from {newspaper_name}. ({self.newspaper_data_path})")
         
         return newspaper_articles
     
-    def save_newspaper_dict(self, newspaper_dict):
-        # Open the JSON file
+    def save_preprocessed_newspapers(self, preprocessed_newspapers):
+        '''
+        Saves new newspapers to preprocessed_newspapers_dict.json, first checking if they have already been added
+        '''
+        # Get old data
         with open(self.preprocessed_newspapers_path, "r") as json_file:
-            data = json.load(json_file)  # Load existing data
+            data = json.load(json_file)
 
-        # Iterate over items in the dictionary
-        for key, value in newspaper_dict.items():  # Use .items() to get key-value pairs
+        # add any new preprocessed newspapers (check if new in old)
+        for key, value in preprocessed_newspapers.items():  # Use .items() to get key-value pairs
             if key not in data:
-                data[key] = value  # Save new key-value pair
+                data[key] = value
 
-        #! Save updated data back to the file
+        # Save new data
         with open(self.preprocessed_newspapers_path, "w") as json_file:
             json.dump(data, json_file, indent=4)
             
-    
     def load_preprocessed_newspapers(self):
         """
         Load preprocessed newspapers from a JSON file.
         """
         if os.path.exists(self.preprocessed_newspapers_path):
             try:
-                with open(self.reprocessed_newspapers_path, 'r') as file:
+                with open(self.preprocessed_newspapers_path, 'r') as file:
                     data = json.load(file)
                     if isinstance(data, dict):
-                        print(f"Successfully loaded preprocessed newspapers from {self.reprocessed_newspapers_path}.")
+                        print(f"Successfully loaded preprocessed newspapers from {self.preprocessed_newspapers_path}.")
                         return data
                     else:
                         print("Error: JSON data is not a dictionary. Returning an empty dictionary.")
                         
             except json.JSONDecodeError as e:
-                print(f"Error decoding JSON file {self.reprocessed_newspapers_path}: {e}")
+                print(f"Error decoding JSON file {self.preprocessed_newspapers_path}: {e}")
         else:
-            print(f"File {self.reprocessed_newspapers_path} does not exist. Starting with an empty dictionary.")
+            print(f"File {self.preprocessed_newspapers_path} does not exist. Starting with an empty dictionary.")
 
         return {}
 
-class BiasAnalysis():
-    def __init__(self):
-        self.file_handler = FileHandler()
-        self.preprocessor = Preprocessor()
-
-        self.preprocessed_articles = ...
-    
-    def preprocess_newspaper(self, article_list):
-        """ 
-        Takes in article list and returns a list of list which is preprocessed article in the form 
-        of every element in the list is a sentence which consist of lists of words
-        
-        input: [str]
-        return: [[str]]
-        """
-        if not article_list:  # Handle empty or None input
-            print("No articles provided for preprocessing.")
-            return []
-
-        preprocessed_article_list = []
-
-        for article in tqdm(article_list, desc="Preprocessing", unit="article"):
-            preprocessed_article_list.extend(preprocessor.preprocess_article(article))
-            # articles to newspaper's article list
-
-        return preprocessed_article_list
 
 # Create helper functions to analyze our newspaper and corpus. These functions will help us see: 
 # - how many articles are there in the newspaper about our selected topic (Israel-Palestine) since we only scraped relevant articles
@@ -111,6 +86,13 @@ class BiasAnalysis():
 # - number of occurance of a unique word in the preprocessed corpus
 
 # create get_article_number, corpus size, and other helper functions
+
+class BiasAnalysis():
+    def __init__(self):
+        self.file_handler = FileHandler()
+        self.preprocessor = Preprocessor()
+
+        self.preprocessed_articles = ...
 
     def no_of_articles(self, article_list):
         return len(article_list)
@@ -123,7 +105,6 @@ class BiasAnalysis():
             
 
         return corpus_size
-
 
     def corpus_size_after(self, preprocessed_article_list):
         corpus = preprocessed_article_list
@@ -247,86 +228,85 @@ class BiasAnalysis():
 
 
 
-def master(self, newspaper_list):
-    """
-    Get a list of newspapers
-    Create a dictionary of newspapers, which is a dictionary
-    For every newspaper, have the following keys:
-    # of articles, corpus size (before preprocessing), # of unique words (before preprocessing),
-    list of articles (only text) (before preprocessing),
-    preprocessed articles (a list of sentences, which are a list of words)
-    corpus size (after preprocessing), # of unique words (after preprocessing),
-    how many times each target word appears (palestine, israel, hamas, idf, netanyahu, sinwar, etc.)
-    train a word2vec, save the model and the weights,
-    bias score for palestine, israel, hamas, idf, etc,
-    Add the following key to each articles
-    """
+    def main(self, newspaper_list, file_handler, preprocessor):
+        """
+        1. Get a list of newspapers
+        2. Create a dictionary of newspapers, each being a dictionary -> {__: {},__:{},__:{}}
+        3. For every newspaper, have the following keys:
+                # of articles, corpus size (before preprocessing), # of unique words (before preprocessing),
+                list of articles (only text) (before preprocessing),
+                preprocessed articles (a list of sentences, which are a list of words)
+                corpus size (after preprocessing), # of unique words (after preprocessing),
+                how many times each target word appears (palestine, israel, hamas, idf, netanyahu, sinwar, etc.)
+        4. Train a word2vec, save the model and the weights,
+            bias score for palestine, israel, hamas, idf, etc,
+        """
 
-    preprocessed_newspapers = load_preprocessed_newspapers("preprocessed_newspapers_dict.json")
-
-
-    # check if the newspaper is already preprocessed, if it is skip it
-    for newspaper in newspaper_list:
-        if f"{newspaper}" not in preprocessed_newspapers:
-            preprocessed_newspapers[newspaper] = {}
-            dict_newspaper = preprocessed_newspapers[newspaper]
-
-            article_list = create_article_list(newspaper)
-            sentence_list = preprocess_newspaper(article_list)
-
-            dict_newspaper["no_of_articles"] = no_of_articles(article_list)
-            dict_newspaper["corpus_size_before_preprocess"] = corpus_size_before(article_list)
-            dict_newspaper["corpus_size"] = corpus_size_after(sentence_list)
-            dict_newspaper["no_of_unique_words"] = no_of_unique_words(sentence_list)
-            dict_newspaper["no_of_sentences"] = no_of_sentences(sentence_list)
-            dict_newspaper["occurance_palestine"] = occurance("palestine", sentence_list)
-            dict_newspaper["occurance_palestinian"] = occurance("palestinian", sentence_list)
-            dict_newspaper["occurance_hamas"] = occurance("hamas", sentence_list)
-            dict_newspaper["occurance_sinwar"] = occurance("sinwar", sentence_list)
-            dict_newspaper["occurance_israel"] = occurance("israel", sentence_list)
-            dict_newspaper["occurance_israeli"] = occurance("israeli", sentence_list)
-            dict_newspaper["occurance_idf"] = occurance("idf", sentence_list)
-            dict_newspaper["occurance_netanyahu"] = occurance("netanyahu", sentence_list)
-            dict_newspaper["model_location"] = ""
-            dict_newspaper["vectors_txt_location"] = ""
-            dict_newspaper["vectors_bin_location"] = ""
-            dict_newspaper["portrayal_palestine"] = {}
-            dict_newspaper["portrayal_palestine_score"] = 0
-            dict_newspaper["portrayal_israel"] = {}
-            dict_newspaper["portrayal_israel_score"] = 0
-            dict_newspaper["palestine-israel_score"] = 0
-            dict_newspaper["articles"] = article_list
-            dict_newspaper["preprocessed"] = sentence_list
-
-            # actually fill out the values for model-related keys
-            dict_newspaper["model_location"], dict_newspaper["vectors_txt_location"], dict_newspaper["vectors_bin_location"] = train(newspaper, sentence_list)
-
-            # Load the model from a file
-            model = Word2Vec.load(f"{newspaper}/{newspaper}_w2v.model")
+        preprocessed_newspapers = file_handler.load_preprocessed_newspapers()
 
 
-            palestinian_words = ["palestine", "palestinian", "hamas", "sinwar"]
-            israeli_words = ["israel", "israeli", "idf", "netanyahu"]
+        # check if the newspaper is already preprocessed, if it is skip it
+        for newspaper in newspaper_list:
+            if f"{newspaper}" not in preprocessed_newspapers:
+                preprocessed_newspapers[newspaper] = {}
+                dict_newspaper = preprocessed_newspapers[newspaper]
 
-            # positive categories: general (good etc), victim, 
-            positive_portrayal_words = ["positive", "good", "victim", "resilient", "justified", "defend", "innocent", "rightful", "humane"]
-            negative_portrayal_words = ["negative", "bad", "aggressor", "attacker", "brutal", "illegal", "terrorist", "barbaric", "massacre", "invade"]
+                article_list = file_handler.create_article_list(newspaper)
+                sentence_list = preprocessor.preprocess_newspaper(article_list)
 
-            dict_newspaper["portrayal_palestine"], dict_newspaper["portrayal_israel"] = calculate_portrayal(model,  palestinian_words, israeli_words, positive_portrayal_words, negative_portrayal_words)
-            print(f"{newspaper}", dict_newspaper["portrayal_palestine"], dict_newspaper["portrayal_israel"])
+                dict_newspaper["no_of_articles"] = self.no_of_articles(article_list)
+                dict_newspaper["corpus_size_before_preprocess"] = self.corpus_size_before(article_list)
+                dict_newspaper["corpus_size"] = self.corpus_size_after(sentence_list)
+                dict_newspaper["no_of_unique_words"] = self.no_of_unique_words(sentence_list)
+                dict_newspaper["no_of_sentences"] = self.no_of_sentences(sentence_list)
+                dict_newspaper["occurance_palestine"] = self.occurance("palestine", sentence_list)
+                dict_newspaper["occurance_palestinian"] = self.occurance("palestinian", sentence_list)
+                dict_newspaper["occurance_hamas"] = self.occurance("hamas", sentence_list)
+                dict_newspaper["occurance_sinwar"] = self.occurance("sinwar", sentence_list)
+                dict_newspaper["occurance_israel"] = self.occurance("israel", sentence_list)
+                dict_newspaper["occurance_israeli"] = self.occurance("israeli", sentence_list)
+                dict_newspaper["occurance_idf"] = self.occurance("idf", sentence_list)
+                dict_newspaper["occurance_netanyahu"] = self.occurance("netanyahu", sentence_list)
+                dict_newspaper["model_location"] = ""
+                dict_newspaper["vectors_txt_location"] = ""
+                dict_newspaper["vectors_bin_location"] = ""
+                dict_newspaper["portrayal_palestine"] = {}
+                dict_newspaper["portrayal_palestine_score"] = 0
+                dict_newspaper["portrayal_israel"] = {}
+                dict_newspaper["portrayal_israel_score"] = 0
+                dict_newspaper["palestine-israel_score"] = 0
+                dict_newspaper["articles"] = article_list
+                dict_newspaper["preprocessed"] = sentence_list
 
-            for key, value in dict_newspaper["portrayal_palestine"].items():
-                dict_newspaper["portrayal_palestine_score"] += (value/4)  # divide by four to get the average
+                # actually fill out the values for model-related keys
+                dict_newspaper["model_location"], dict_newspaper["vectors_txt_location"], dict_newspaper["vectors_bin_location"] = self.train(newspaper, sentence_list)
 
-            for key, value in dict_newspaper["portrayal_israel"].items():
-                dict_newspaper["portrayal_israel_score"] += (value/4)
+                # Load the model from a file
+                model = Word2Vec.load(f"{newspaper}/{newspaper}_w2v.model")
 
-            dict_newspaper["palestine-israel_score"] = dict_newspaper["portrayal_palestine_score"] - dict_newspaper["portrayal_israel_score"]
-            print("palestinian are better portrayed by: ", dict_newspaper["palestine-israel_score"])
 
-            save_newspaper_dict(preprocessed_newspapers)
-            
-    return preprocessed_newspapers
+                palestinian_words = ["palestine", "palestinian", "hamas", "sinwar"]
+                israeli_words = ["israel", "israeli", "idf", "netanyahu"]
+
+                # positive categories: general (good etc), victim, 
+                positive_portrayal_words = ["positive", "good", "victim", "resilient", "justified", "defend", "innocent", "rightful", "humane"]
+                negative_portrayal_words = ["negative", "bad", "aggressor", "attacker", "brutal", "illegal", "terrorist", "barbaric", "massacre", "invade"]
+
+                dict_newspaper["portrayal_palestine"], dict_newspaper["portrayal_israel"] = self.calculate_portrayal(model,  palestinian_words, israeli_words, positive_portrayal_words, negative_portrayal_words)
+                print(f"{newspaper}", dict_newspaper["portrayal_palestine"], dict_newspaper["portrayal_israel"])
+
+                for key, value in dict_newspaper["portrayal_palestine"].items():
+                    dict_newspaper["portrayal_palestine_score"] += (value/4)  # divide by four to get the average
+
+                for key, value in dict_newspaper["portrayal_israel"].items():
+                    dict_newspaper["portrayal_israel_score"] += (value/4)
+
+                dict_newspaper["palestine-israel_score"] = dict_newspaper["portrayal_palestine_score"] - dict_newspaper["portrayal_israel_score"]
+                print("palestinian are better portrayed by: ", dict_newspaper["palestine-israel_score"])
+
+                file_handler.save_newspaper_dict(preprocessed_newspapers)
+                
+        return preprocessed_newspapers
 
 def run_flow():
     '''
@@ -351,14 +331,15 @@ def run_flow():
     
     return True # No models were found
             
-            
 
 if __name__ == "__main__":
     newspaper_list = ["cnn.com", "WashingtonPost.com"]
     run_master = run_flow()
     bias_analysis = BiasAnalysis()
+    file_handler = FileHandler()
+    preprocessor = Preprocessor()
     if run_master:
-        processed_newspapers = master(newspaper_list)
+        processed_newspapers = bias_analysis.main(newspaper_list, file_handler, preprocessor)
 
 
     model = Word2Vec.load(f"WashingtonPost.com/WashingtonPost.com_w2v.model")
