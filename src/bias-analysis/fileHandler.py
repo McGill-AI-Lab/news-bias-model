@@ -1,4 +1,5 @@
 import json
+import os
 
 class FileHandler():
     def __init__(self):
@@ -65,6 +66,7 @@ class FileHandler():
                         
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON file {self.preprocessed_newspapers_path}: {e}")
+                print("Starting with an empty dictionary.")
         else:
             print(f"File {self.preprocessed_newspapers_path} does not exist. Starting with an empty dictionary.")
 
