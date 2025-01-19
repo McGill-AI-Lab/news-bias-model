@@ -1,0 +1,123 @@
+The articles we scraped:
+cnn.com: 11272
+WashingtonPost.com: 1887
+Reuters.com: 4042
+sfchronicle.com: 558
+www.thetimes.com: 653
+https://www.aljazeera.com/: 86341
+https://www.cbc.ca/: 316
+https://www.bbc.com: 710
+https://www.nytimes.com: 1872
+nypost.com: 4304
+https://news.sky.com: 328
+https://www.msnbc.com: 101
+https://www.cnbc.com: 333
+
+
+Potential CC-NEWS candiates:
+abcactionnews.com
+abcnews.go.com
+africanews.com
+aljazeera.com
+azernews.az
+bnnbloomberg.ca
+bnnbreaking.com
+bostonglobe.com
+ca.news.yahoo.com
+cambridge-news.co.uk
+cbc.ca
+cbsnews.com
+chicago.suntimes.com
+chicagotribune.com
+cnbc.com
+cnn.com
+cyprus-mail.com
+dailymail.co.uk
+dailypost.co.uk
+dailysabah.com
+dailystar.co.uk
+dw.com
+edinburghlive.co.uk
+eurasiareview.com
+euronews.com
+forbes.com
+foxnews.com
+gazettelive.co.uk
+heraldscotland.com
+hindustantimes.com
+huffingtonpost.co.uk
+huffpost.com
+hurriyetdailynews.com
+independent.co.uk
+independent.com
+india.com
+indiatimes.com
+inews.co.uk
+irishmirror.ie
+irishtimes.com
+israelnationalnews.com
+japannews.yomiuri.co.jp
+japantimes.co.jp
+jewishpress.com
+jpost.com
+kyivindependent.com
+kyivpost.com
+nbcnews.com
+newsday.com
+northernirelandworld.com
+northumberlandgazette.co.uk
+nottinghampost.com
+npr.org
+ntv.ca
+nysun.com
+nzherald.co.nz
+palestinechronicle.com
+politico.eu
+pressandjournal.co.uk
+pressherald.com
+romania-insider.com
+sfstandard.com
+sputnikglobe.com
+standard.net.au
+telegraph.co.uk
+the-independent.com
+thedailymeal.com
+thedailystar.net
+thefederal.com
+theglobeandmail.com
+thehindu.com
+thesouthafrican.com
+thestar.co.uk
+thestatesman.com
+thesun.my
+theweek.com
+time.com
+timeslive.co.za
+timesofindia.indiatimes.com
+toronto.citynews.ca
+tribuneindia.com
+turan.az
+u.today
+yahoo.com
+'themoscowtimes.com'
+'globalnews.ca'
+
+
+To Do:
+- choose between word2vec and fasttext
+- simplify the portrayal words, choose better portrayal words
+- Arbitrary threshold: at least 4000 articles required to train a word embedding model on the newspaper
+- All of the newspapers that we scraped (only for israel artilces) that pass the threshold are also either available on CC-NEWS or we did a general scrape too
+    - Combine cnn israel corpus with CC-NEWS cnn articles from 2022-2024 (be mindful of how many articles you will end up having)
+    - Do the same for aljazeera and cnbc
+    - We have extra 18k articles for nyt scraped by Davi, create a unified NYT dataset
+    - nypost, washingtonpost, sfchronicle, thetimes (I dont think we have enough articles for these and I dont think they are in CC-NEWS) find a solution or skip
+    - we have enough articles for reuters but they are only from the israeli context, maybe find a general reuters corpus, or create one
+- Make sure there is a standard date that we include articles for individual newspaper corpuses
+(you cannot have 4000 articles from 2007 for cnn, and 4k articles from 2024 for nyt)
+- Choose total of 20 newspapers to train individual word embedding model on (choose some from the CC-NEWS and some from the ones we scraped)
+- Train a word embedding model on the 20 newspapers + get the word counts word necessary words
+
+(the following tasks can be done before of after the previous tasks)
+- implement a word embedding model on pytorch to enable GPU acceleration
+- decide on how to do year-by-year word embedding analysis on CC-NEWS (ie. dataset is too big, are you going to divide/filter, if so how? & train the models)
