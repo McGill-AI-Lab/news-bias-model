@@ -1,4 +1,4 @@
-The articles we scraped:
+The newspapers we scraped (only for israel-related keywords)
 cnn.com: 11272
 WashingtonPost.com: 1887
 Reuters.com: 4042
@@ -14,7 +14,7 @@ https://www.msnbc.com: 101
 https://www.cnbc.com: 333
 
 
-Potential CC-NEWS candiates:
+newspapers in CC-NEWS that we can use:
 abcactionnews.com
 abcnews.go.com
 africanews.com
