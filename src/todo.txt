@@ -121,3 +121,4 @@ To Do:
 (the following tasks can be done before of after the previous tasks)
 - implement a word embedding model on pytorch to enable GPU acceleration
 - decide on how to do year-by-year word embedding analysis on CC-NEWS (ie. dataset is too big, are you going to divide/filter, if so how? & train the models)
+- check out doc2vec
