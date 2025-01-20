@@ -99,12 +99,12 @@ tribuneindia.com
 turan.az
 u.today
 yahoo.com
-'themoscowtimes.com'
-'globalnews.ca'
+themoscowtimes.com
+globalnews.ca
 
 
 To Do:
-- choose between word2vec and fasttext
+- choose between word2vec and fasttext - Word2Vec
 - simplify the portrayal words, choose better portrayal words
 - Arbitrary threshold: at least 4000 articles required to train a word embedding model on the newspaper
 - All of the newspapers that we scraped (only for israel artilces) that pass the threshold are also either available on CC-NEWS or we did a general scrape too
