@@ -35,9 +35,10 @@ class FileHandler():
         '''
         Saves new newspapers to preprocessed_newspapers_dict.json, first checking if they have already been added
         '''
-        # Get old data
-        with open(self.preprocessed_newspapers_path, "r") as json_file:
-            data = json.load(json_file)
+        # Get old data, if there is any
+        if os.path.getsize(self.preprocessed_newspapers_path) > 0:
+            with open(self.preprocessed_newspapers_path, "r") as json_file:
+                data = json.load(json_file)
 
         # add any new preprocessed newspapers (check if new in old)
         for key, value in preprocessed_newspapers.items():  # Use .items() to get key-value pairs
@@ -47,6 +48,8 @@ class FileHandler():
         # Save new data
         with open(self.preprocessed_newspapers_path, "w") as json_file:
             json.dump(data, json_file, indent=4)
+            
+        print("Saved preprocessed newspaper articles.")
             
     def load_preprocessed_newspapers(self):
         """
@@ -65,7 +68,7 @@ class FileHandler():
                         print("Error: JSON data is not a dictionary. Returning an empty dictionary.")
                         
             except json.JSONDecodeError as e:
-                print(f"Error decoding JSON file {self.preprocessed_newspapers_path}: {e}")
+                print(f"Error decoding JSON file {self.preprocessed_newspapers_path}: {e}. File may be empty.")
                 print("Starting with an empty dictionary.")
         else:
             print(f"File {self.preprocessed_newspapers_path} does not exist. Starting with an empty dictionary.")
