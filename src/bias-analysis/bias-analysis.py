@@ -3,6 +3,7 @@ import os
 from preprocess import Preprocessor
 from fileHandler import FileHandler
 from gensim.models import Word2Vec
+import word2veckeras
 import pathlib
 
 # ### Preprocess every article in the newspaper to create a corpus
@@ -43,8 +44,7 @@ class BiasAnalysis():
 
         corpus_size = 0
         for sentence in corpus:
-            for word in sentence:
-                corpus_size += 1
+            corpus_size += len(sentence) 
 
         return corpus_size
 
@@ -58,7 +58,9 @@ class BiasAnalysis():
                     pass
                 else:
                     words.append(word)
-
+                    
+        print("HFHF", len(word))
+        print("###", len(set(preprocessed_article_list)))
         return len(words)
 
     def no_of_sentences(self, preprocessed_article_list):
@@ -92,8 +94,8 @@ class BiasAnalysis():
             vector_size=300,
             window=5, # max distance between word and furthest word
             min_count=10, # ignores words with <10 occurances
-            sg=1, # skip-gram
-            workers=4, # Threads
+            sg=1, # use skip-gram
+            workers=os.cpu_count(), # use all cores available 
             negative=20 # Negative sampling
         )
 
@@ -142,21 +144,24 @@ class BiasAnalysis():
 
         for word in self.palestinian_words:
             palestine_portrayal_scores[word] = 0
-            for positive in self.positive_portrayal_words:
-                if positive in vocabulary_words:
-                    palestine_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive}")/pos_count)
-            for negative in self.negative_portrayal_words:
-                if positive in vocabulary_words:
-                    palestine_portrayal_scores[word] -= (model.wv.similarity(f"{word}", f"{negative}")/neg_count)
+            for positive_word in self.positive_portrayal_words:
+                if positive_word in vocabulary_words:
+                    palestine_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive_word}")/pos_count)
+                    
+            for dimension in self.negative_portrayal_words.keys():
+                palestine_portrayal_scores[dimension] = 0
+                portrayal_words = self.negative_portrayal_words[dimension].append(dimension) # add dimension word into the portrayal words for that dimension
+                if negative_word in portrayal_words:
+                    palestine_portrayal_scores[dimension] -= (model.wv.similarity(f"{word}", f"{negative_word}")/neg_count)
 
         for word in self.israeli_words:
             israel_portrayal_scores[word] = 0
-            for positive in self.positive_portrayal_words:
-                if positive in vocabulary_words:
-                    israel_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive}")/pos_count)
-            for negative in self.negative_portrayal_words:
-                if positive in vocabulary_words:
-                    israel_portrayal_scores[word] -= (model.wv.similarity(f"{word}", f"{negative}")/neg_count)
+            for positive_word in self.positive_portrayal_words:
+                if positive_word in vocabulary_words:
+                    israel_portrayal_scores[word] += (model.wv.similarity(f"{word}", f"{positive_word}")/pos_count)
+            for negative_word in self.negative_word_portrayal_words:
+                if negative_word in vocabulary_words:
+                    israel_portrayal_scores[word] -= (model.wv.similarity(f"{word}", f"{negative_word}")/neg_count)
 
         return palestine_portrayal_scores, israel_portrayal_scores
 
