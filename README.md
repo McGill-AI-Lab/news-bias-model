@@ -46,3 +46,8 @@ Here are the visualizations of how each newspaper portrays Israel-Palestine and 
 ![output1](https://github.com/user-attachments/assets/1dd765ab-52e1-4903-be5e-1ff3ba5662f4)
 
 
+Contributers:
+Emir Sahin: CC_NEWS + the research
+Jacob Leader: Repo maintanance + scraping
+Oscar, Jacob S, Dory: Scraping
+
