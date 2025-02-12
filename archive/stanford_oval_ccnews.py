@@ -119,7 +119,7 @@ def save_to_jsonfile(row, output_file, retries=5, delay=0.5):
 dataset = load_dataset("stanford-oval/ccnews", name="2016", streaming=True)
 
 print("Extracting articles:")
-output_path = os.path.join("../src/data", "stanford_oval_ccnews", "st_ccnews_2016.json")
+output_path = os.path.join("data", "stanford_oval_ccnews", "st_ccnews_2016.json")
 i = 0
 
 for row in tqdm(dataset["train"], desc="Processing articles", unit="article"):
