@@ -42,6 +42,7 @@ We calculate how each geopolitical entity is represented in the corpus by portra
 We then save the portrayals for each geopolitical entity for each newspaper into a json file.
 
 Here are the visualizations of how each newspaper portrays Israel-Palestine and Russia-Ukraine conflicts:
+![output](https://github.com/user-attachments/assets/8e14ed2e-6ba2-4ae7-aff7-35499af71c1b)
+![output1](https://github.com/user-attachments/assets/1dd765ab-52e1-4903-be5e-1ff3ba5662f4)
 
-![output.png](..%2F..%2F..%2FDesktop%2Foutput.png)
-![output1.png](..%2F..%2F..%2FDesktop%2Foutput1.png)
+
